@@ -10,11 +10,10 @@ export const dbConfig = {
   database: process.env.DB_NAME!,
   port: Number(process.env.DB_PORT) as number,
   waitForConnections: true,
-  connectionLimit: 100,
+  connectionLimit: 1000,
   idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
   queueLimit: 0,
   enableKeepAlive: true,
-  keepAliveInitialDelay: 0,
   // timezone: "utc",
 };
 

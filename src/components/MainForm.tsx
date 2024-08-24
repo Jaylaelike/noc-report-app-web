@@ -33,7 +33,7 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useQueries } from "@tanstack/react-query";
 import axios from "axios";
 
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm, SubmitHandler, Controller } from "react-hook-form";
 
 import { useMutation } from "@tanstack/react-query";
 
@@ -107,8 +107,6 @@ export default function MainForm() {
 
   const [detailMessage, setDetailMessage] = React.useState<string>("");
 
-  const [jobTicketMessage, setJobTicketMessage] = React.useState<string>("");
-
   console.log(`emailsData`, personName);
 
   const handleChange = (event: SelectChangeEvent<typeof personName>) => {
@@ -120,8 +118,6 @@ export default function MainForm() {
       typeof value === "string" ? value.split(",") : value,
     );
   };
-
-
 
   const calculateDuration = (start: string, end: string) => {
     if (start && end) {
@@ -155,7 +151,7 @@ export default function MainForm() {
             axios.get(`http://localhost:4000/api/station/${stationName}`),
         },
         {
-          queryKey: ["stationNames"],
+          queryKey: ["stationNames", stationName],
           queryFn: (): Promise<StationData> =>
             axios.get(`http://localhost:4000/api/station/all`),
         },
@@ -172,21 +168,23 @@ export default function MainForm() {
 
   // const isQueriesLoaded = staTionData.isLoading;
 
-  // console.log(staTionData);
-
   // Using react-hook-form to manage form state and submission
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-    setValue
+    setValue,
+    control,
   } = useForm();
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   //create state for send line notify
   const [sendLineNotify, setLineNotify] = React.useState<boolean>(false);
+
+  //create function for send email with EmailJS
+  const [sendEmail, setEmail] = React.useState<boolean>(false);
 
   const handleCreatRecords: SubmitHandler<CreatData> = async (data) => {
     // To change the format of the date when submitting the form
@@ -197,34 +195,53 @@ export default function MainForm() {
         "YYYY-MM-DD HH:mm:ss",
       ));
 
-    if (sendLineNotify) {
-      await sendLineNotifyMessage();
+    if (!sendLineNotify) {
+      try {
+        const message = `
+        Hi, ${user.username} ส่งข้อมูล Downtime มาให้ตรวจสอบ
+        แจ้งแหตุขัดข้องในการให้บริการฯ
+        วันที่เกิดเหตุ : ${dayjs(data.DowntimeStart).format("DD-MM-YYYY")}
+        Station: ${stationName}
+        FacilityProvider: ${staTionData?.data?.data[0].Facility}
+        EngineeringCenter: ${staTionData?.data?.data[0].Engineering_center}
+        DowntimeStart: ${startTime}
+        DowntimeEnd: ${endTime}
+        DowntimeTotal: ${duration}
+        Detail: ${detailMessage}
+        JobTickets: ${form.current?.JobTickets.value}
+      `;
+        await axios.post("/api/line", { message });
+      } catch (error) {
+        console.error(error);
+      }
     }
 
-    // try {
-    //   // Sending an email using EmailJS
-    //   await emailjs
-    //     .sendForm("service_s2vialv", "template_6fe8vll", form.current, {
-    //       publicKey: "k2oIA432AyQSUlsJM",
-    //     })
-    //     .then(
-    //       () => {
-    //         console.log("SUCCESS!");
-    //       },
-    //       (error) => {
-    //         console.log("FAILED...", error.text);
-    //       },
-    //     );
-    //   alert("Please check your email to view the sent message.");
-    // } catch (error) {
-    //   console.log(error);
-    //   alert("Oops! Something went wrong. Please try again later.");
-    // }
+    if (!sendEmail) {
+      try {
+        // Sending an email using EmailJS
+        await emailjs
+          .sendForm("service_s2vialv", "template_bzeerga", form.current, {
+            publicKey: "k2oIA432AyQSUlsJM",
+          })
+          .then(
+            () => {
+              console.log("SUCCESS!");
+            },
+            (error) => {
+              console.log("FAILED...", error.text);
+            },
+          );
+        alert("Please check your email to view the sent message.");
+      } catch (error) {
+        console.log(error);
+        alert("Oops! Something went wrong. Please try again later.");
+      }
+    }
 
     setIsSubmitting(true);
     try {
       // Simulate form submission
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // If submission is successful or you need to allow re-submission, reset the state
     } catch (error) {
@@ -237,13 +254,18 @@ export default function MainForm() {
     createRecords(data);
   };
 
-  const handleStationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedStation = e.target.value;
-    setStationName(selectedStation);
-    setValue('Site', selectedStation); // Update React Hook Form state
-  };
+  // const handleStationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  //   const selectedStation = e.target.value;
+  //   setStationName(selectedStation);
+  //   setValue('Site', selectedStation); // Update React Hook Form state
+
+  // };
 
   const [isClient, setIsClient] = React.useState(false);
+
+  setValue("EngineeringCenter", staTionData?.data?.data[0].Engineering_center);
+  setValue("FacilityProvider", staTionData?.data?.data[0].Facility);
+  setValue("DowntimeTotal", duration);
 
   React.useEffect(() => {
     setIsClient(true);
@@ -281,46 +303,33 @@ export default function MainForm() {
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setLineNotify(event.target.checked);
+    setEmail(event.target.checked);
   };
 
   //create function for send line notify by api POST "/api/line"
   //req boyd {message: string}
 
-  const sendLineNotifyMessage = async () => {
-    //     this message  template
-    //     แจ้งแหตุขัดข้องในการให้บริการฯ
-    // วันที่เกิดเหตุ : 2024-05-13
-    // Site : กรุงเทพ
-    // Service Provider : บริษัท อาร์เอส มัลติมีเดีย จำกัด, บริษัท บีอีซี-มัลติมีเดีย จำกัด, บริษัท เจเคเอ็น เบสท์ ไลฟ์ จำกัด, สถานีโทรทัศน์ ALTV, สถานีโทรทัศน์ไทยพีบีเอส
-    // Start time : 17:04:54
-    // Stop time : 17:05:44
-    // Total time : 00:00:50
-    // Detail :                    สถานีส่งสัญญาณฯ กรุงเทพฯ ออกอากาศขัดข้อง เนื่องจากเกิดฟ้าผ่า เวลา 17:04:47 น. เนื่องจากเกิดฟ้าผ่า ทำให้เครื่องส่ง Reserve และ MUX ขัดข้อง ทางเจ้าหน้าที่ส่วนงานวิศวกรรมกรุงเทพฯ ได้ทำการแก้ไขโดย ใช้เครื่องส่งสัญญาณฯ สำรอง (สะพานแดง) ออกอากาศแทนเป็นการชั่วคราว สามารถออกอากาศได้ปกติ สรุปการออกอากาศขัดข้อง
-    //  เวลา 17:04:47  น. ถึง 17:04:51 น. รวมเวลา 4 วินาที
-    //    17:04:54  น. ถึง 17:05:44 น. รวมเวลา 50 วินาที
-    //  และ 17:11:52  น. ถึง 17:11:57 น. รวมเวลา 5 วินาที
-    //  อ้างอิง DVR
+  // const sendLineNotifyMessage = async () => {
+  //   // Get Detail and JobTickets from submit data
+  //   const message = `
+  //     Hi, ${user.username} ส่งข้อมูล Downtime มาให้ตรวจสอบ
+  //     Station: ${stationName}
+  //     FacilityProvider: ${staTionData?.data?.data[0].Facility}
+  //     EngineeringCenter: ${staTionData?.data?.data[0].Engineering_center}
+  //     DowntimeStart: ${startTime}
+  //     DowntimeEnd: ${endTime}
+  //     DowntimeTotal: ${duration}
+  //     Detail: ${detailMessage}
+  //     JobTickets: ${form.current?.JobTickets.value}
+  //     Remark: ${staTionData?.data?.data[0].Remark}
+  //   `;
 
-    // Get Detail and JobTickets from submit data
-    const message = `
-      Hi, ${user.username} ส่งข้อมูล Downtime มาให้ตรวจสอบ
-      Station: ${stationName}
-      FacilityProvider: ${staTionData?.data?.data[0].Facility}
-      EngineeringCenter: ${staTionData?.data?.data[0].Engineering_center}
-      DowntimeStart: ${startTime}
-      DowntimeEnd: ${endTime}
-      DowntimeTotal: ${duration}
-      Detail: ${detailMessage}
-      JobTickets: ${jobTicketMessage}
-      Remark: ${staTionData?.data?.data[0].Remark}
-    `;
-
-    try {
-      await axios.post("/api/line", { message });
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  //   try {
+  //     await axios.post("/api/line", { message });
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
   return (
     <form
@@ -341,11 +350,35 @@ export default function MainForm() {
 
                 <input type="hidden" name="subject" value={"Demo"} />
                 <input type="hidden" name="user_name" value={user.username} />
+                <input
+                  type="hidden"
+                  name="user_email"
+                  value={personName.map((email) => email)}
+                />
+                <input
+                  type="hidden"
+                  name="posting_date"
+                  value={dayjs(new Date()).format("DD-MM-YYYY HH:mm:ss")}
+                />
+                <input
+                  type="hidden"
+                  name="start_time"
+                  value={dayjs(new Date(startTime)).format(
+                    "DD-MM-YYYY HH:mm:ss",
+                  )}
+                />
+                <input
+                  type="hidden"
+                  name="end_time"
+                  value={dayjs(new Date(endTime)).format("DD-MM-YYYY HH:mm:ss")}
+                />
+                <input type="hidden" name="sum_time" value={duration} />
+                <input type="hidden" name="detail_data" value={detailMessage} />
 
-                <select
-                  {...register("Site", { required: true })}
+                {/* <select
+                  {...register("Site")}
                   value={stationName}
-                  onChange={handleStationChange}
+                  onChange={ (e) => setStationName(e.target.value)}
                   className="input-warning w-full max-w-xs p-5 text-gray-500"
                 >
                   {staTionNames?.data?.data.map((station: any) => (
@@ -357,8 +390,39 @@ export default function MainForm() {
                     </option>
                   ))}
                 </select>
+
                 {errors.Site && (
                   <span className="text-red-500">This field is required</span>
+                )} */}
+
+                <Controller
+                  name="Site"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <select
+                      {...field}
+                      value={stationName}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setStationName(e.target.value);
+                      }}
+                      className="input-warning w-full max-w-xs p-5 text-gray-500"
+                    >
+                      {staTionNames?.data?.data.map((station: any) => (
+                        <option
+                          key={station.Station_Thai}
+                          value={station.Station_Thai}
+                        >
+                          {station.Station_Thai}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                />
+
+                {errors.Site && (
+                  <span className="text-red-500">{errors.Site.message}</span>
                 )}
               </div>
 
@@ -379,11 +443,8 @@ export default function MainForm() {
               <div className="space-y-2">
                 <Label htmlFor="FacilityProvider">Facilities Providers</Label>
                 <Input
-                  id="FacilityProvider"
                   {...register("FacilityProvider", { required: true })}
-                  defaultValue={staTionData?.data?.data[0].Facility || ""}
-                  // placeholder={staTionData?.data?.data[0].Facility || ""}
-                  value={staTionData?.data?.data[0].Facility || ""}
+                  placeholder={staTionData?.data?.data[0].Facility}
                 />
               </div>
               {errors.FacilityProvider && (
@@ -393,29 +454,21 @@ export default function MainForm() {
             <div className="space-y-2">
               <Label htmlFor="EngineeringCenter">Engineer Center</Label>
               <Input
-                id="EngineeringCenter"
-                {...register("EngineeringCenter" , { required: true })}
-                // defaultValue={
-                //   staTionData?.data?.data[0].Engineering_center || ""
-                // }
-                // placeholder={
-                //   staTionData?.data?.data[0].Engineering_center || ""
-                // }
-                value={staTionData?.data?.data[0].Engineering_center || ""}
+                {...register("EngineeringCenter", { required: true })}
+                placeholder={staTionData?.data?.data[0].Engineering_center}
               />
             </div>
             {errors.EngineeringCenter && (
               <span className="text-red-500">ตรวจทาน EngineeringCenter</span>
             )}
 
-            <div className="grid grid-cols-2 gap-4 ">
+            <div className="grid grid-cols-2 gap-4">
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DemoContainer components={["DateTimePicker"]}>
                   <div className="grid grid-cols-1 gap-2">
                     <div className="space-y-2">
                       <DemoItem>
-                        <DateTimePicker
-                          
+                        {/* <DateTimePicker
                           label="DowntimeStart"
                           views={["year", "day", "hours", "minutes", "seconds"]}
                           format="DD-MM-YYYY HH:mm:ss"
@@ -426,12 +479,39 @@ export default function MainForm() {
                               dayjs(newValue).format("YYYY-MM-DDTHH:mm"),
                             );
                           }}
+                        /> */}
+                        <Controller
+                          name="DowntimeStart"
+                          control={control}
+                          defaultValue={dayjs(new Date(startTime))}
+                          render={({ field }) => (
+                            <DateTimePicker
+                              {...field}
+                              label="DowntimeStart"
+                              views={[
+                                "year",
+                                "day",
+                                "hours",
+                                "minutes",
+                                "seconds",
+                              ]}
+                              format="DD-MM-YYYY HH:mm:ss"
+                              ampm={false}
+                              value={field.value}
+                              onChange={(newValue) => {
+                                field.onChange(newValue);
+                                setStartTime(
+                                  dayjs(newValue).format("YYYY-MM-DDTHH:mm"),
+                                );
+                              }}
+                            />
+                          )}
                         />
                       </DemoItem>
                     </div>
                     <div className="space-y-2">
                       <DemoItem>
-                        <DateTimePicker
+                        {/* <DateTimePicker
                           label="DowntimeEnd"
                           views={["year", "day", "hours", "minutes", "seconds"]}
                           format="DD-MM-YYYY HH:mm:ss"
@@ -442,6 +522,33 @@ export default function MainForm() {
                               dayjs(newValue).format("YYYY-MM-DDTHH:mm"),
                             );
                           }}
+                        /> */}
+                        <Controller
+                          name="DowntimeEnd"
+                          control={control}
+                          defaultValue={dayjs(new Date(endTime))}
+                          render={({ field }) => (
+                            <DateTimePicker
+                              {...field}
+                              label="DowntimeEnd"
+                              views={[
+                                "year",
+                                "day",
+                                "hours",
+                                "minutes",
+                                "seconds",
+                              ]}
+                              format="DD-MM-YYYY HH:mm:ss"
+                              ampm={false}
+                              value={field.value}
+                              onChange={(newValue) => {
+                                field.onChange(newValue);
+                                setEndTime(
+                                  dayjs(newValue).format("YYYY-MM-DDTHH:mm"),
+                                );
+                              }}
+                            />
+                          )}
                         />
                       </DemoItem>
                     </div>
@@ -477,14 +584,13 @@ export default function MainForm() {
               )} */}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="duration">Duration</Label>
-              <Input
-                id="duration"
-                {...register("DowntimeTotal", { required: true })}
-                placeholder="Calculated duration"
-                defaultValue={duration}
-                value={duration}
-                autoFocus
+              <Controller
+                name="DowntimeTotal"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Input {...field} defaultValue={duration} />
+                )}
               />
             </div>
             {errors.DowntimeTotal && (
@@ -523,7 +629,9 @@ export default function MainForm() {
             {isClient && (
               <dialog id="my_modal_1" className="modal">
                 <div className="modal-box">
-                  <h3 className="text-lg font-bold">ตั้งค่าการส่ง Line Notify หรือ Email</h3>
+                  <h3 className="text-lg font-bold">
+                    ตั้งค่าการส่ง Line Notify หรือ Email
+                  </h3>
                   <p className="py-4">อนุมัติให้ส่ง Line Notify หรือ Email?</p>
                   <div className="modal-action">
                     <form method="dialog">
@@ -534,7 +642,8 @@ export default function MainForm() {
                           <span className="label-text">Line Notify</span>
                           <input
                             type="checkbox"
-                            checked={sendLineNotify}
+                            defaultChecked={true}
+                            disabled
                             onChange={handleCheckboxChange}
                             className="checkbox-accent checkbox"
                           />
@@ -545,7 +654,9 @@ export default function MainForm() {
                           <span className="label-text">Email</span>
                           <input
                             type="checkbox"
-                            // value={}
+                            defaultChecked={true}
+                            onChange={handleCheckboxChange}
+                            value={sendEmail}
                             className="checkbox-accent checkbox"
                           />
                         </label>
@@ -652,7 +763,6 @@ export default function MainForm() {
               <Input
                 id="JobTickets"
                 placeholder="JobTickets NOC: 123456"
-                onChange={(e) => setJobTicketMessage(e.target.value)}
                 {...register("JobTickets", { required: true })}
               />
             </CardHeader>

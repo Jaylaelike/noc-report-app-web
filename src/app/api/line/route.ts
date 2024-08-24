@@ -15,8 +15,11 @@ export async function POST(req: Request) {
       body: `message=${message}`,
     });
 
+    alert("send message success");
+
     return NextResponse.json(record, { status: 200 });
   } catch (error) {
+    alert("send message error");
     return NextResponse.json({ message: "error" }, { status: 500 });
   }
 }

@@ -3,7 +3,10 @@ import { fontFamily } from "tailwindcss/defaultTheme";
 import daisyui from "daisyui";
 
 export default {
-  content: ["./src/**/*.tsx"],
+  content: [
+    "./src/**/*.tsx",
+    "./node_modules/react-tailwindcss-datepicker/dist/index.esm.{js,ts}",
+  ],
   theme: {
     extend: {
       fontFamily: {
