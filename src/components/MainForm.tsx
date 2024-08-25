@@ -216,7 +216,7 @@ export default function MainForm() {
       }
     }
 
-    if (!sendEmail) {
+    if (sendEmail) {
       try {
         // Sending an email using EmailJS
         await emailjs
@@ -656,7 +656,7 @@ export default function MainForm() {
                             type="checkbox"
                             defaultChecked={true}
                             onChange={handleCheckboxChange}
-                            value={sendEmail}
+                            // value={sendEmail}
                             className="checkbox-accent checkbox"
                           />
                         </label>
@@ -802,9 +802,30 @@ export default function MainForm() {
               <CardTitle>Customers Emails</CardTitle>
             </CardHeader>
 
+            <div className="min-w-screen space-y-4 p-3">
+              <label className="label cursor-pointer">
+                <span className="label-text">Send Email</span>
+                <Controller
+                  name="sendEmail"
+                  control={control}
+                  
+                  render={({ field }) => (
+                    <input
+                      type="checkbox"
+                      {...field}
+                      className="checkbox-secondary checkbox"
+                      checked={field.value}
+                      onChange={handleCheckboxChange}
+                    />
+                  )}
+                />
+              </label>
+            </div>
+
             <CardContent>
               <FormControl sx={{ m: 1, width: 300 }}>
                 <InputLabel id="demo-multiple-name-label">Email</InputLabel>
+
                 <Select
                   labelId="demo-multiple-name-label"
                   id="demo-multiple-name"

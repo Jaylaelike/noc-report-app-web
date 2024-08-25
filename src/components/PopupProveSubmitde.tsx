@@ -1,10 +1,11 @@
+"use client";
 import React, { useState } from "react";
 
 function PopupProveSubmitde(
     props: {  onClose : () => void }
 ) {
 
-    const [isOpen, setIsOpen] = useState(false);
+    // const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
       {/* The button to open modal */}z

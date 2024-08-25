@@ -1,10 +1,10 @@
 import React from 'react'
-import { TableData } from '~/components/TableData'
+
 
 function page() {
   return (
     <div>
-      <TableData />
+     <p>Table</p>
     </div>
   )
 }
