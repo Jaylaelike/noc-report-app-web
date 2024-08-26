@@ -27,7 +27,7 @@ jobs:
           image: jaylaelove/noc-report-app-front
           tags: latest
           registry: docker.io
-          multiPlatform: false
+          multiPlatform: true
           platform: linux/arm64,linux/amd64
           overrideDriver: true
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
