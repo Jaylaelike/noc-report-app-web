@@ -19,7 +19,7 @@ RUN npm ci
 # Copy all files
 COPY . .
 
-RUN npm run build --verbose
+RUN npm run build
 
 # Expose the listening port
 EXPOSE 3002
