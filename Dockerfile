@@ -1,5 +1,5 @@
 # Start from the official Node.js LTS base image
-FROM node:18-alpine
+FROM node:20-alpine
 
 
 # Set the working directory
@@ -14,10 +14,12 @@ COPY drizzle ./drizzle/
 # Install dependencies
 RUN npm install
 
+RUN npm ci
+
 # Copy all files
 COPY . .
 
-RUN npm run build
+RUN npm run build --verbose
 
 # Expose the listening port
 EXPOSE 3002
