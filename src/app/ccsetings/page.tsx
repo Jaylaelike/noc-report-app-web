@@ -3,7 +3,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-
+import { useQueries } from "@tanstack/react-query";
 import axios from "axios";
 
 import { useSession } from "~/components/providers/Session.provider";
@@ -22,11 +22,8 @@ import {
   TableCell,
 } from "~/components/ui/table";
 
-import UserCreate from "~/components/UserCreate";
 
-
-import { useQueries } from "@tanstack/react-query";
-
+import CCEmailCreate from "~/components/CcEmailsCreate";
 
 interface Users {
   id_reporter: number;
@@ -180,7 +177,6 @@ function page() {
 
   const userId = user?.id;
 
- 
   if (!user) {
     redirect("/");
   }
@@ -195,7 +191,7 @@ function page() {
       queries: [
         {
           queryKey: [""],
-          queryFn: (): Promise<Users> => axios.get("/api/user_reporters"),
+          queryFn: (): Promise<Users> => axios.get("/api/sendcc"),
         },
         {
           queryKey: ["users"],
@@ -207,7 +203,7 @@ function page() {
   const isQueriesLoaded = usersData.isLoading;
 
   const roleUser: UserSession = sessionsData?.data?.data.find(
-    (user) => user.id === userId
+    (user) => user.id === userId,
   );
 
 
@@ -216,12 +212,12 @@ function page() {
 
   const handleDeleteRecord = async (itemId: number) => {
     try {
-      await axios.delete(`api/user_reporters/${itemId}`);
+      await axios.delete(`api/sendcc/${itemId}`);
 
       // router.refresh();
       //reload page
 
-      router.push("/usersettings");
+      router.push("/ccsetings");
       location.reload();
       close();
     } catch (error) {
@@ -232,14 +228,14 @@ function page() {
   return (
     <>
    
-    {roleUser?.role === "Admin" && (
-    <div className=" min-h-screen justify-center">
+     {roleUser?.role === "Admin" && (
+    <main className="z-10 flex min-h-screen flex-col items-center justify-center">
       <div className="space-y-8 p-4">
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardContent className="flex items-center justify-between">
               <div>
-                <CardTitle>User All</CardTitle>
+                <CardTitle>Emails setting All</CardTitle>
 
                 <div className="text-4xl font-bold">
                   {usersData?.data?.data.length}
@@ -258,12 +254,12 @@ function page() {
                 className="btn btn-primary"
                 onClick={() => setShowCreateUser(true)}
               >
-                เพิ่มผู้ใช้งาน +{" "}
+                เพิ่ม Email +{" "}
               </button>
             </div>
           </div>
 
-          {showCreateUser && <UserCreate />}
+          {showCreateUser && <CCEmailCreate />}
 
           {isQueriesLoaded ? (
             <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b pt-10">
@@ -276,16 +272,18 @@ function page() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Id</TableHead>
-                    <TableHead>Name</TableHead>
+                    <TableHead>Username</TableHead>
+
+                    <TableHead>email</TableHead>
                     <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {usersData?.data?.data.map((user) => (
-                    <TableRow key={user.id_reporter}>
-                      <TableCell>{user.id_reporter}</TableCell>
-                      <TableCell>{user.username_reporter}</TableCell>
+                    <TableRow key={user.id}>
+                      <TableCell>{user.customers_cc}</TableCell>
+
+                      <TableCell>{user.emails_cc}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <button className="btn btn-primary btn-sm">
@@ -294,7 +292,7 @@ function page() {
 
                           <button
                             className="btn btn-primary btn-sm"
-                            onClick={() => handleDeleteRecord(user.id_reporter)}
+                            onClick={() => handleDeleteRecord(user.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -308,35 +306,33 @@ function page() {
           )}
         </div>
       </div>
-    </div>
-    )}
-
-{isQueriesLoaded ? (
-          <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b pt-10">
-            <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-              <span className="loading loading-lg"></span>
-            </div>
-          </div>
-        ) : (
-          <>
-            {roleUser?.role !== "Admin" && (
-              <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b pt-10">
-                <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-                  <h1 className="text-5xl text-balance font-extrabold tracking-tight text-gray-800 sm:text-[5rem]">
-                    คุณไม่ใช่ Admin กรุณา{" "}
-                    <span className="text-balance text-[hsl(353,93%,58%)]">
-                      ติดต่อเจ้าหน้าที่
-                    </span>
-                  </h1>
-                </div>
-              </div>
-            )}
-          </>
+    </main>
         )}
 
+{isQueriesLoaded ? (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b pt-10">
+          <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+            <span className="loading loading-lg"></span>
+          </div>
+        </div>
+      ) : (
+        <>
+          {roleUser?.role !== "Admin" && (
+            <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b pt-10">
+              <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+                <h1 className="text-balance text-5xl font-extrabold tracking-tight text-gray-800 sm:text-[5rem]">
+                  คุณไม่ใช่ Admin กรุณา{" "}
+                  <span className="text-balance text-[hsl(353,93%,58%)]">
+                    ติดต่อเจ้าหน้าที่
+                  </span>
+                </h1>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
-
-     </>
+</>
   );
 }
 

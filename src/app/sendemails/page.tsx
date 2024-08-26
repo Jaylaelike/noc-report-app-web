@@ -22,12 +22,17 @@ import {
   TableCell,
 } from "~/components/ui/table";
 
-
 import EmailCreate from "~/components/EmailsCreate";
 
 interface Users {
   id_reporter: number;
   username_reporter: string;
+}
+
+interface UserSession {
+  id: number;
+  username: string;
+  role: string;
 }
 
 function CalendarClockIcon(props) {
@@ -168,14 +173,17 @@ function page() {
   const { user } = useSession();
   // console.log(user);
 
+  const userId = user?.id;
+
   if (!user) {
     redirect("/");
   }
 
   //create state for show create user form
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [showCreateUser, setShowCreateUser] = useState(false);
 
-  const [usersData] =
+  const [usersData, sessionsData] =
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useQueries({
       queries: [
@@ -183,10 +191,18 @@ function page() {
           queryKey: [""],
           queryFn: (): Promise<Users> => axios.get("/api/emails"),
         },
+        {
+          queryKey: ["users"],
+          queryFn: (): Promise<UserSession> => axios.get("/api/sessions"),
+        },
       ],
     });
 
   const isQueriesLoaded = usersData.isLoading;
+
+  const roleUser: UserSession = sessionsData?.data?.data.find(
+    (user) => user.id === userId,
+  );
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const router = useRouter();
@@ -207,90 +223,113 @@ function page() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center z-10">
-      <div className="space-y-8 p-4">
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardContent className="flex items-center justify-between">
-              <div>
-                <CardTitle>Emails setting All</CardTitle>
+    <>
+      {roleUser?.role === "Admin" && (
+        <main className="z-10 flex min-h-screen flex-col items-center justify-center">
+          <div className="space-y-8 p-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card>
+                <CardContent className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Emails setting All</CardTitle>
 
-                <div className="text-4xl font-bold">
-                  {usersData?.data?.data.length}
+                    <div className="text-4xl font-bold">
+                      {usersData?.data?.data.length}
+                    </div>
+                  </div>
+                  <GroupIcon className="h-12 w-12 text-primary" />
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">All Leave Requests</h2>
+                <div className="relative">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => setShowCreateUser(true)}
+                  >
+                    เพิ่ม Email +{" "}
+                  </button>
                 </div>
               </div>
-              <GroupIcon className="h-12 w-12 text-primary" />
-            </CardContent>
-          </Card>
-        </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">All Leave Requests</h2>
-            <div className="relative">
-              <button
-                className="btn btn-primary"
-                onClick={() => setShowCreateUser(true)}
-              >
-                เพิ่ม Email +{" "}
-              </button>
+              {showCreateUser && <EmailCreate />}
+
+              {isQueriesLoaded ? (
+                <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b pt-10">
+                  <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+                    <span className="loading loading-lg"></span>
+                  </div>
+                </div>
+              ) : (
+                <Card>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Enterprise</TableHead>
+                        <TableHead>Username</TableHead>
+                        <TableHead>telphone</TableHead>
+                        <TableHead>email</TableHead>
+                        <TableHead>Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {usersData?.data?.data.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>{user.enterprise}</TableCell>
+                          <TableCell>{user.customers}</TableCell>
+                          <TableCell>{user.telphone}</TableCell>
+                          <TableCell>{user.emails}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <button className="btn btn-primary btn-sm">
+                                <ClipboardPenIcon className="h-4 w-4" />
+                              </button>
+
+                              <button
+                                className="btn btn-primary btn-sm"
+                                onClick={() => handleDeleteRecord(user.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
+              )}
             </div>
           </div>
+        </main>
+      )}
 
-          {showCreateUser && <EmailCreate />}
-
-          {isQueriesLoaded ? (
+      {isQueriesLoaded ? (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b pt-10">
+          <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+            <span className="loading loading-lg"></span>
+          </div>
+        </div>
+      ) : (
+        <>
+          {roleUser?.role !== "Admin" && (
             <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b pt-10">
               <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-                <span className="loading loading-lg"></span>
+                <h1 className="text-balance text-5xl font-extrabold tracking-tight text-gray-800 sm:text-[5rem]">
+                  คุณไม่ใช่ Admin กรุณา{" "}
+                  <span className="text-balance text-[hsl(353,93%,58%)]">
+                    ติดต่อเจ้าหน้าที่
+                  </span>
+                </h1>
               </div>
             </div>
-          ) : (
-            <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                   
-                    <TableHead>Enterprise</TableHead>
-                    <TableHead>Username</TableHead>
-                    <TableHead>telphone</TableHead>
-                    <TableHead>email</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {usersData?.data?.data.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>{user.enterprise}</TableCell>
-                      <TableCell>{user.customers}</TableCell>
-                      <TableCell>{user.telphone}</TableCell>
-                      <TableCell>{user.emails}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <button className="btn btn-primary btn-sm">
-                            <ClipboardPenIcon className="h-4 w-4" />
-                          </button>
-
-                          <button
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleDeleteRecord(user.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
           )}
-        </div>
-      </div>
-
-      </main>
-      
-  
+        </>
+      )}
+    </>
   );
 }
 

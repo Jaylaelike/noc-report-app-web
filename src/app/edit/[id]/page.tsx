@@ -30,7 +30,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
@@ -44,9 +44,16 @@ import dayjs from "dayjs";
 
 import { createRef } from "react";
 import emailjs from "@emailjs/browser";
+import { start } from "repl";
+import { init } from "next/dist/compiled/webpack/webpack";
 
 // eslint-disable-next-line react-hooks/rules-of-hooks
 const form = createRef();
+interface EditPostPageProps {
+  params: {
+    id: string;
+  };
+}
 
 interface StationData {
   Engineering_center: string;
@@ -82,7 +89,6 @@ interface SendCEmail {
   enterprise_cc: string;
   emails_cc: string;
   telphone_cc: string;
-
 }
 
 const ITEM_HEIGHT = 48;
@@ -105,20 +111,26 @@ function getStyles(name: string, personName: string[], theme: Theme) {
   };
 }
 
-export default function MainForm() {
+export default function MainForm({ params }: EditPostPageProps) {
+  const { id } = params;
   const theme = useTheme();
   const [personName, setPersonName] = React.useState<string[]>([]);
   const [personNameCc, setPersonNameCc] = React.useState<string[]>([]);
 
-  const [startTime, setStartTime] = React.useState<string>("");
-  const [endTime, setEndTime] = React.useState<string>("");
+  // const [startTime, setStartTime] = React.useState<string>(initStartTime);
+  // const [endTime, setEndTime] = React.useState<string>(initEndTime);
   const [duration, setDuration] = React.useState<string>("");
 
+  const [remarkMessage, setRemarkMessage] = React.useState<string>("");
   const [detailMessage, setDetailMessage] = React.useState<string>("");
 
+  const [jobsTicketMessage, setJobsTicketMessage] = React.useState<string>("");
+
+  const [stateOfStartTimeChange, setStateOfStartTimeChange] =
+    React.useState(false);
+  const [stateOfEndTimeChange, setStateOfEndTimeChange] = React.useState(false);
+
   console.log(`emailsData`, personName);
-  console.log(`cCemailsData`, personNameCc);
-  
 
   const handleChange = (event: SelectChangeEvent<typeof personName>) => {
     const {
@@ -140,23 +152,47 @@ export default function MainForm() {
     );
   };
 
-  const calculateDuration = (start: string, end: string) => {
-    if (start && end) {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-      const diff = endDate.getTime() - startDate.getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      setDuration(`${hours}h ${minutes}m  ${seconds}s`);
-    } else {
-      setDuration("");
-    }
-  };
+  //   const calculateDuration = (start: string, end: string) => {
+  //     if (start && end) {
+  //       const startDate = new Date(start);
+  //       const endDate = new Date(end);
+  //       const diff = endDate.getTime() - startDate.getTime();
 
-  React.useEffect(() => {
-    calculateDuration(startTime, endTime);
-  }, [startTime, endTime]);
+  //       const hours = Math.floor(diff / (1000 * 60 * 60));
+  //       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  //       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  //       setDuration(`${hours}h ${minutes}m  ${seconds}s`);
+  //     } else {
+  //       setDuration("");
+  //     }
+  //   };
+
+  //   React.useEffect(() => {
+  //     calculateDuration(startTime, endTime);
+  //   }, [startTime, endTime, stateOfStartTimeChange, stateOfEndTimeChange]);
+
+  // React.useEffect(() => {
+  //   const calculateDuration = () => {
+  //     if (startTime && endTime) {
+  //       const start = dayjs(startTime, "DD-MM-YYYY HH:mm:ss");
+  //       const end = dayjs(endTime, "DD-MM-YYYY HH:mm:ss");
+  //       const diff = end.diff(start);
+
+  //       //   if (!isNaN(diff)) {
+  //       const hours = Math.floor(diff / (1000 * 60 * 60));
+  //       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  //       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  //       setDuration(`${hours}h ${minutes}m ${seconds}s`);
+  //     } else {
+  //       setDuration("0h 0m 0s");
+  //     }
+  //     // } else {
+  //     //   setDuration("0h 0m 0s");
+  //     // }
+  //   };
+
+  //   calculateDuration();
+  // }, [startTime, endTime, stateOfStartTimeChange, stateOfEndTimeChange]);
 
   //create state for select station name
   const [stationName, setStationName] = React.useState<string>("กรุงเทพ");
@@ -193,6 +229,57 @@ export default function MainForm() {
 
   // const isQueriesLoaded = staTionData.isLoading;
 
+  const { data: dataPost, isLoading: isLoadingPost } = useQuery({
+    queryKey: ["posts", id],
+    queryFn: async () => {
+      const res = await axios.get(`/api/main_data/${id}`);
+      return res.data as CreatData;
+    },
+  });
+
+  console.log(dataPost);
+
+  const firstDataPost: CreatData | undefined = Array.isArray(dataPost)
+    ? dataPost[0]
+    : undefined;
+
+  //   const newdetailMessage = firstDataPost?.Detail;
+
+  const initStartTime = dayjs(firstDataPost?.DowntimeStart).subtract(7, 'hour').format(
+    "DD-MM-YYYY HH:mm:ss",
+  );
+  const initEndTime = dayjs(firstDataPost?.DowntimeEnd).subtract(7, 'hour').format(
+    "DD-MM-YYYY HH:mm:ss",
+  );
+
+  const [startTime, setStartTime] = React.useState<string>(initStartTime);
+  const [endTime, setEndTime] = React.useState<string>(initEndTime);
+
+  const initDurationTime = firstDataPost?.DowntimeTotal;
+
+  React.useEffect(() => {
+    const calculateDuration = () => {
+      if (startTime && endTime) {
+        const start = dayjs(startTime, "DD-MM-YYYY HH:mm:ss");
+        const end = dayjs(endTime, "DD-MM-YYYY HH:mm:ss");
+        const diff = end.diff(start);
+
+        //   if (!isNaN(diff)) {
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        setDuration(`${hours}h ${minutes}m ${seconds}s`);
+      } else {
+        setDuration("0h 0m 0s");
+      }
+      // } else {
+      //   setDuration("0h 0m 0s");
+      // }
+    };
+
+    calculateDuration();
+  }, [startTime, endTime, stateOfStartTimeChange, stateOfEndTimeChange]);
+
   // Using react-hook-form to manage form state and submission
   const {
     register,
@@ -201,7 +288,22 @@ export default function MainForm() {
     reset,
     setValue,
     control,
-  } = useForm();
+  } = useForm<CreatData>({
+    defaultValues: {
+      Site: firstDataPost?.Site,
+      FacilityProvider: firstDataPost?.FacilityProvider,
+      EngineeringCenter: firstDataPost?.EngineeringCenter,
+      PostingDate: firstDataPost?.PostingDate,
+      DowntimeStart: firstDataPost?.DowntimeStart,
+      DowntimeEnd: firstDataPost?.DowntimeEnd,
+      DowntimeTotal: firstDataPost?.DowntimeTotal,
+      Detail: firstDataPost?.Detail,
+      JobTickets: firstDataPost?.JobTickets,
+      Reporter: firstDataPost?.Reporter,
+      Approver: firstDataPost?.Approver,
+      Remark: firstDataPost?.Remark,
+    },
+  });
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -223,17 +325,19 @@ export default function MainForm() {
     if (!sendLineNotify) {
       try {
         const message = `
-        Hi, ${user.username} ส่งข้อมูล Downtime มาให้ตรวจสอบ
+        ${user.username} ส่งข้อมูล Downtime แก้ไขแล้ว
         แจ้งแหตุขัดข้องในการให้บริการฯ
         วันที่เกิดเหตุ : ${dayjs(data.DowntimeStart).format("DD-MM-YYYY")}
-        Station: ${stationName}
-        FacilityProvider: ${staTionData?.data?.data[0].Facility}
-        EngineeringCenter: ${staTionData?.data?.data[0].Engineering_center}
-        DowntimeStart: ${dayjs(data.DowntimeStart).format("DD-MM-YYYY HH:mm:ss")}
-        DowntimeEnd: ${dayjs(data.DowntimeEnd).format("DD-MM-YYYY HH:mm:ss")}
-        DowntimeTotal: ${duration}
-        Detail: ${detailMessage}
-        JobTickets: ${form.current?.JobTickets.value}
+        วันที่แก้ไข: ${dayjs().format("DD-MM-YYYY")}
+        Station: ${firstDataPost?.Site}
+        FacilityProvider: ${firstDataPost?.FacilityProvider}
+        EngineeringCenter: ${firstDataPost?.EngineeringCenter}
+        DowntimeStart: ${initStartTime || dayjs(firstDataPost?.DowntimeStart).subtract(7, "hour").format("YYYY-MM-DD HH:mm:ss")}
+        DowntimeEnd: ${initEndTime || dayjs(firstDataPost?.DowntimeEnd).subtract(7, "hour").format("YYYY-MM-DD HH:mm:ss")}
+        DowntimeTotal: ${duration || firstDataPost?.DowntimeTotal} 
+        Detail: ${detailMessage || firstDataPost?.Detail}
+        JobTickets: ${jobsTicketMessage || firstDataPost?.JobTickets}
+        Remark: ${remarkMessage || firstDataPost?.Remark}
       `;
         await axios.post("/api/line", { message });
       } catch (error) {
@@ -277,35 +381,22 @@ export default function MainForm() {
     // Re-enable the button after form processing
     setIsSubmitting(false);
 
-    createRecords(data);
+    updatePost(data);
   };
 
-  // const handleStationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  //   const selectedStation = e.target.value;
-  //   setStationName(selectedStation);
-  //   setValue('Site', selectedStation); // Update React Hook Form state
-
-  // };
-
-  // const [isClient, setIsClient] = React.useState(false);
-
-  setValue("EngineeringCenter", staTionData?.data?.data[0].Engineering_center);
-  setValue("FacilityProvider", staTionData?.data?.data[0].Facility);
-  setValue("DowntimeTotal", duration);
-
-  // React.useEffect(() => {
-  //   setIsClient(true);
-  // }, []);
+  setValue("EngineeringCenter", firstDataPost?.EngineeringCenter);
+  setValue("FacilityProvider", firstDataPost?.FacilityProvider);
+  setValue("DowntimeTotal", duration || firstDataPost?.DowntimeTotal);
 
   const router = useRouter();
 
   const {
-    mutate: createRecords,
+    mutate: updatePost,
     isPending,
     isSuccess,
   } = useMutation({
-    mutationFn: (newRecord: CreatData) => {
-      return axios.post("api/main_data/create", newRecord);
+    mutationFn: (newPost: CreatData) => {
+      return axios.patch(`/api/main_data/${id}`, newPost);
     },
     onError: (error) => {
       console.log(error);
@@ -332,6 +423,30 @@ export default function MainForm() {
     setEmail(event.target.checked);
   };
 
+  //Set the initial value from the API
+  React.useEffect(() => {
+    // Set the initial value from the API
+    if (firstDataPost?.DowntimeStart) {
+      setValue(
+        "DowntimeStart",
+        dayjs(firstDataPost.DowntimeStart).subtract(7, "hour") ||
+          initStartTime ||
+          "",
+      );
+      setValue(
+        "DowntimeEnd",
+        dayjs(firstDataPost.DowntimeEnd).subtract(7, "hour") ||
+          initEndTime ||
+          "",
+      );
+
+      setValue("Approver", firstDataPost?.Approver || "");
+      setValue("DowntimeTotal", firstDataPost?.DowntimeTotal || duration || "");
+      setValue("Detail", firstDataPost?.Detail || "");
+      setValue("JobTickets", firstDataPost?.JobTickets || "");
+      setValue("Remark", firstDataPost?.Remark || "");
+    }
+  }, [firstDataPost, setValue]);
 
   return (
     <form
@@ -365,23 +480,36 @@ export default function MainForm() {
                 <input
                   type="hidden"
                   name="start_time"
-                  value={dayjs(new Date(startTime)).format(
-                    "DD-MM-YYYY HH:mm:ss",
-                  )}
+                  value={
+                    // dayjs(new Date(startTime)).format("DD-MM-YYYY HH:mm:ss") ||
+                    initStartTime
+                  }
                 />
                 <input
                   type="hidden"
                   name="end_time"
-                  value={dayjs(new Date(endTime)).format("DD-MM-YYYY HH:mm:ss")}
+                  value={
+                    // dayjs(new Date(endTime)).format("DD-MM-YYYY HH:mm:ss") ||
+                    initEndTime
+                  }
                 />
-                <input type="hidden" name="sum_time" value={duration} />
+                <input
+                  type="hidden"
+                  name="sum_time"
+                  value={duration || initStartTime}
+                />
+
                 <input type="hidden" name="detail_data" value={detailMessage} />
 
-                <input type="hidden" name="station_name" value={stationName} />
+                <input
+                  type="hidden"
+                  name="station_name"
+                  value={firstDataPost?.Site}
+                />
                 <input
                   type="hidden"
                   name="Facility_name"
-                  value={staTionData?.data?.data[0].Facility}
+                  value={firstDataPost?.FacilityProvider}
                 />
 
                 <input
@@ -390,34 +518,15 @@ export default function MainForm() {
                   value={personNameCc.map((email) => email)}
                 />
 
-                {/* <select
-                  {...register("Site")}
-                  value={stationName}
-                  onChange={ (e) => setStationName(e.target.value)}
-                  className="input-warning w-full max-w-xs p-5 text-gray-500"
-                >
-                  {staTionNames?.data?.data.map((station: any) => (
-                    <option
-                      key={station.Station_Thai}
-                      value={station.Station_Thai}
-                    >
-                      {station.Station_Thai}
-                    </option>
-                  ))}
-                </select>
-
-                {errors.Site && (
-                  <span className="text-red-500">This field is required</span>
-                )} */}
-
                 <Controller
                   name="Site"
                   control={control}
-                  defaultValue=""
+                  defaultValue={firstDataPost?.Site}
+                  disabled
                   render={({ field }) => (
                     <select
                       {...field}
-                      value={stationName}
+                      value={firstDataPost?.Site}
                       onChange={(e) => {
                         field.onChange(e);
                         setStationName(e.target.value);
@@ -457,9 +566,25 @@ export default function MainForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="FacilityProvider">Facilities Providers</Label>
-                <Input
+                {/* <Input
                   {...register("FacilityProvider", { required: true })}
-                  placeholder={staTionData?.data?.data[0].Facility}
+                  //   placeholder={staTionData?.data?.data[0].Facility}
+                  //   value={firstDataPost?.FacilityProvider}
+                  defaultValue={firstDataPost?.FacilityProvider}
+                  disabled
+                /> */}
+                <Controller
+                  name="FacilityProvider"
+                  control={control}
+                  defaultValue={firstDataPost?.FacilityProvider}
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      value={firstDataPost?.FacilityProvider}
+                      disabled
+                    />
+                  )}
                 />
               </div>
               {errors.FacilityProvider && (
@@ -468,9 +593,25 @@ export default function MainForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="EngineeringCenter">Engineer Center</Label>
-              <Input
+              {/* <Input
                 {...register("EngineeringCenter", { required: true })}
-                placeholder={staTionData?.data?.data[0].Engineering_center}
+                value={firstDataPost?.EngineeringCenter}
+                // placeholder={staTionData?.data?.data[0].Engineering_center}
+                defaultValue={firstDataPost?.EngineeringCenter}
+                disabled
+              /> */}
+              <Controller
+                name="EngineeringCenter"
+                control={control}
+                defaultValue={firstDataPost?.EngineeringCenter}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    value={firstDataPost?.EngineeringCenter}
+                    disabled
+                  />
+                )}
               />
             </div>
             {errors.EngineeringCenter && (
@@ -483,22 +624,10 @@ export default function MainForm() {
                   <div className="grid grid-cols-1 gap-2">
                     <div className="space-y-2">
                       <DemoItem>
-                        {/* <DateTimePicker
-                          label="DowntimeStart"
-                          views={["year", "day", "hours", "minutes", "seconds"]}
-                          format="DD-MM-YYYY HH:mm:ss"
-                          ampm={false}
-                          value={dayjs(new Date(startTime))}
-                          onChange={(newValue) => {
-                            setStartTime(
-                              dayjs(newValue).format("YYYY-MM-DDTHH:mm"),
-                            );
-                          }}
-                        /> */}
                         <Controller
                           name="DowntimeStart"
                           control={control}
-                          defaultValue={dayjs(new Date(startTime))}
+                          defaultValue={firstDataPost?.DowntimeStart}
                           render={({ field }) => (
                             <DateTimePicker
                               {...field}
@@ -516,8 +645,10 @@ export default function MainForm() {
                               onChange={(newValue) => {
                                 field.onChange(newValue);
                                 setStartTime(
-                                  dayjs(newValue).format("YYYY-MM-DDTHH:mm"),
+                                  dayjs(newValue).format("DD-MM-YYYY HH:mm:ss"),
                                 );
+
+                                setStateOfStartTimeChange(true);
                               }}
                             />
                           )}
@@ -526,22 +657,10 @@ export default function MainForm() {
                     </div>
                     <div className="space-y-2">
                       <DemoItem>
-                        {/* <DateTimePicker
-                          label="DowntimeEnd"
-                          views={["year", "day", "hours", "minutes", "seconds"]}
-                          format="DD-MM-YYYY HH:mm:ss"
-                          ampm={false}
-                          value={dayjs(new Date(endTime))}
-                          onChange={(newValue) => {
-                            setEndTime(
-                              dayjs(newValue).format("YYYY-MM-DDTHH:mm"),
-                            );
-                          }}
-                        /> */}
                         <Controller
                           name="DowntimeEnd"
                           control={control}
-                          defaultValue={dayjs(new Date(endTime))}
+                          defaultValue={firstDataPost?.DowntimeEnd}
                           render={({ field }) => (
                             <DateTimePicker
                               {...field}
@@ -559,8 +678,10 @@ export default function MainForm() {
                               onChange={(newValue) => {
                                 field.onChange(newValue);
                                 setEndTime(
-                                  dayjs(newValue).format("YYYY-MM-DDTHH:mm"),
+                                  dayjs(newValue).format("DD-MM-YYYY HH:mm:ss"),
                                 );
+
+                                setStateOfEndTimeChange(true);
                               }}
                             />
                           )}
@@ -570,41 +691,35 @@ export default function MainForm() {
                   </div>
                 </DemoContainer>
               </LocalizationProvider>
-
-              {/* <div className="space-y-2">
-                <Label htmlFor="DowntimeStart">DowntimeStart</Label>
-                <Input
-                  id="DowntimeStart"
-                  {...register("DowntimeStart", { required: true })}
-                  type="datetime-local"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
-              </div>
-              {errors.DowntimeStart && (
-                <span className="text-red-500">This field is required</span>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="DowntimeEnd">DowntimeEnd</Label>
-                <Input
-                  id="DowntimeEnd"
-                  {...register("DowntimeEnd", { required: true })}
-                  type="datetime-local"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                />
-              </div>
-              {errors.DowntimeEnd && (
-                <span className="text-red-500">This field is required</span>
-              )} */}
             </div>
             <div className="space-y-2">
-              <Controller
+              {/* <Controller
                 name="DowntimeTotal"
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
-                  <Input {...field} defaultValue={duration} />
+                  <Input {...field} defaultValue={firstDataPost?.DowntimeTotal} />
+                )}
+              /> */}
+              <Controller
+                name="DowntimeTotal"
+                control={control}
+                defaultValue={firstDataPost?.DowntimeTotal}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    // value={duration || firstDataPost?.DowntimeTotal}
+                    defaultValue={firstDataPost?.DowntimeTotal}
+                    onChange={(e) => {
+                      try {
+                        field.onChange(e); // This updates the react-hook-form state
+                        setDuration(e.target.value); // This updates your local state if needed
+                      } catch (error) {
+                        console.log(error);
+                      }
+                    }}
+                  />
                 )}
               />
             </div>
@@ -614,12 +729,29 @@ export default function MainForm() {
 
             <div className="space-y-2">
               <Label htmlFor="message">Details</Label>
-              <Textarea
+              {/* <Textarea
                 id="Detail"
                 {...register("Detail", { required: true })}
                 placeholder="Enter your message"
                 onChange={(e) => setDetailMessage(e.target.value)}
                 className="min-h-[100px]"
+              /> */}
+              <Controller
+                name="Detail"
+                control={control}
+                defaultValue={firstDataPost?.Detail}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Textarea
+                    {...field}
+                    defaultValue={firstDataPost?.Detail}
+                    onChange={(e) => {
+                      field.onChange(e); // This updates the react-hook-form state
+                      setDetailMessage(e.target.value); // This updates your local state if needed
+                    }}
+                    className="min-h-[100px]"
+                  />
+                )}
               />
             </div>
             {errors.Detail && (
@@ -650,39 +782,9 @@ export default function MainForm() {
                 <Toaster richColors />
               </div>
             )}
-
-            {/* {isClient && (
-              <dialog id="my_modal_1" className="modal">
-                <div className="modal-box">
-                  <h3 className="text-lg font-bold">
-                    ตั้งค่าการส่ง Line Notify หรือ Email
-                  </h3>
-                  <p className="py-4">อนุมัติให้ส่ง Line Notify หรือ Email?</p>
-                  <div className="modal-action">
-                    <form method="dialog">
-                      {/* if there is a button in form, it will close the modal */}
-            {/* <div className="form-control">
-                        <label className="label cursor-pointer">
-                          <FaLine className="h-6 w-6 text-primary" />
-                          <span className="label-text">Line Notify</span>
-                          <input
-                            type="checkbox"
-                            defaultChecked={true}
-                            disabled
-                            onChange={handleCheckboxChange}
-                            className="checkbox-accent checkbox"
-                          />
-                        </label>
-                      </div>
-                      <button className="btn">ok</button>
-                    </form>
-                  </div>
-                </div>
-              </dialog>
-            )} */}
           </CardContent>
 
-          {isSuccess && (
+          {isPending && (
             <div
               role="alert"
               className="rounded-xl border border-gray-100 bg-white p-4"
@@ -746,11 +848,28 @@ export default function MainForm() {
             <CardContent>
               <div className="space-y-2">
                 <Label htmlFor="Remark">Remarks</Label>
-                <Textarea
+                {/* <Textarea
                   id="Remark"
                   {...register("Remark", { required: true })}
                   placeholder="Enter your message"
                   className="min-h-[100px]"
+                /> */}
+                <Controller
+                  name="Remark"
+                  control={control}
+                  defaultValue={firstDataPost?.Remark}
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <Textarea
+                      {...field}
+                      defaultValue={firstDataPost?.Remark}
+                      onChange={(e) => {
+                        field.onChange(e); // This updates the react-hook-form state
+                        setRemarkMessage(e.target.value); // This updates your local state if needed
+                      }}
+                      className="min-h-[100px]"
+                    />
+                  )}
                 />
               </div>
               {errors.Remark && (
@@ -773,10 +892,27 @@ export default function MainForm() {
 
             <CardHeader>
               <CardTitle>Tickets ID</CardTitle>
-              <Input
+              {/* <Input
                 id="JobTickets"
                 placeholder="JobTickets NOC: 123456"
                 {...register("JobTickets", { required: true })}
+              /> */}
+              <Controller
+                name="JobTickets"
+                control={control}
+                defaultValue={firstDataPost?.JobTickets}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e); // This updates the react-hook-form state
+                      setJobsTicketMessage(e.target.value); // This updates your local state if needed
+                    }}
+                    defaultValue={firstDataPost?.JobTickets}
+                    placeholder="JobTickets NOC: 123456"
+                  />
+                )}
               />
             </CardHeader>
             {errors.JobTickets && (
@@ -786,7 +922,7 @@ export default function MainForm() {
             <CardHeader>
               <CardTitle>Approver</CardTitle>
 
-              <select
+              {/* <select
                 {...register("Approver", { required: true })}
                 value={userReports}
                 defaultValue="=== กรุณาเลือก ==="
@@ -801,7 +937,32 @@ export default function MainForm() {
                     {user.username_reporter}
                   </option>
                 ))}
-              </select>
+              </select> */}
+              <Controller
+                name="Approver"
+                control={control}
+                defaultValue={firstDataPost?.Approver || ""}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <select
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      setUserReports(e.target.value);
+                    }}
+                    className="input-warning w-full max-w-xs p-5 text-gray-500"
+                  >
+                    {reporterUsers?.data?.data.map((user: any) => (
+                      <option
+                        key={user.username_reporter}
+                        value={user.username_reporter}
+                      >
+                        {user.username_reporter}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              />
             </CardHeader>
             {errors.Approver && (
               <span className="text-red-500">This field is required</span>

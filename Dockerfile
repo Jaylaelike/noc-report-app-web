@@ -17,11 +17,7 @@ RUN npm install
 # Copy all files
 COPY . .
 
-
-
 RUN npm run build
-
-
 
 # Expose the listening port
 EXPOSE 3002

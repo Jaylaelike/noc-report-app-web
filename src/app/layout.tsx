@@ -31,13 +31,15 @@ export default async function RootLayout({
   return (
     <Providers>
       <html lang="en" className={`${GeistSans.variable}`}>
+      <SessionProvider value={sessionData}>
         <body className={`${myFont.className}`}>
-          <Header />
+        <Header />
 
           <main className="container mx-auto">
-            <SessionProvider value={sessionData}>{children}</SessionProvider>
+           {children}
           </main>
         </body>
+        </SessionProvider>
       </html>
     </Providers>
   );

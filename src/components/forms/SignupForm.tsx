@@ -23,6 +23,16 @@ export default function SignupForm() {
 
   return (
     <form className=" grid grid-flow-row space-y-5 text-xl" action={fromAction}>
+      <div className="grid grid-cols-1 justify-items-center">
+      <h1>NOC Operation Report</h1>
+      <br />
+      <div className="avatar">
+        <div className="w-24 rounded-full ring ring-primary ring-offset-2 ring-offset-base-100">
+          <img src="https://res.cloudinary.com/satjay/image/upload/v1705293483/ptzmq3vg2zb4i9wqi8xy.jpg" />
+        </div>
+      </div>
+      </div>
+     
       <h1 className="text-3xl font-semibold">Create an account</h1>
       <label htmlFor="username">
         Username:

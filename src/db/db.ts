@@ -1,19 +1,15 @@
 import { drizzle, MySql2Database } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 
-
-
 export const dbConfig = {
   host: process.env.DB_HOST!,
   user: process.env.DB_USER!,
   password: process.env.DB_PASSWORD!,
   database: process.env.DB_NAME!,
   port: Number(process.env.DB_PORT) as number,
-  waitForConnections: true,
-  connectionLimit: 1000,
-  idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
-  queueLimit: 0,
-  enableKeepAlive: true,
+
+ 
+
   // timezone: "utc",
 };
 
@@ -29,9 +25,16 @@ export const dbConfig = {
 //   return pool;
 // };
 
-
 const pool = mysql.createPool({
   ...dbConfig,
+  waitForConnections: true,
+  connectionLimit: 100,
+  idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0, // initial delay for TCP Keep-Alive packets, in milliseconds, the default value 30000
+  queueLimit: 0,
+ 
+
   // connectionLimit: 100,
 });
 
@@ -74,11 +77,11 @@ export const closeDb = async (): Promise<void> => {
 // function singleton<Value>(name: string, value: () => Value): Value {
 //   const globalAny: any = global;
 //   globalAny.__singletons = globalAny.__singletons || {};
-  
+
 //   if (!globalAny.__singletons[name]) {
 //     globalAny.__singletons[name] = value();
 //   }
-  
+
 //   return globalAny.__singletons[name];
 // }
 

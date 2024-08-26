@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, datetime, mysqlTable, varchar } from "drizzle-orm/mysql-core";
+import { bigint, datetime, mysqlTable, text, varchar } from "drizzle-orm/mysql-core";
 
 //user id should be varchar 255
 
@@ -22,11 +22,11 @@ export const users = mysqlTable("maindbs", {
   DowntimeStart: datetime("DowntimeStart").notNull(),
   DowntimeEnd: datetime("DowntimeEnd").notNull(),
   DowntimeTotal: varchar("DowntimeTotal", { length: 255 }).notNull(),
-  Detail: varchar("Detail", { length: 255 }).notNull(),
+  Detail: text("Detail").notNull(),
   JobTickets: varchar("JobTickets", { length: 255 }).notNull(),
   Reporter: varchar("Reporter", { length: 255 }).notNull(),
   Approver: varchar("Approver", { length: 255 }).notNull(),
-  Remark: varchar("Remark", { length: 255 }).notNull(),
+  Remark: text("Remark").notNull(),
   createdAt: datetime("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
