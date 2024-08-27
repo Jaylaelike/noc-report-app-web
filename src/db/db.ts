@@ -8,6 +8,8 @@ export const dbConfig = {
   password: process.env.DB_PASSWORD!,
   database: process.env.DB_NAME!,
   port: Number(process.env.DB_PORT) as number,
+  waitForConnections: true,
+  connectionLimit: 5000, // Adjust this value based on your needs
 };
 
 
@@ -15,7 +17,7 @@ export const dbConfig = {
 const pool = mysql.createPool({
  ...dbConfig,
   waitForConnections: true,
-  connectionLimit: 100, // Adjust this value based on your needs
+  connectionLimit: 5000, // Adjust this value based on your needs
   queueLimit: 0,
   idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
   enableKeepAlive: true,

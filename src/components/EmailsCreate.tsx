@@ -95,13 +95,13 @@ export default function EmailCreate() {
                 <option value="สถานีวิทยุโทรทัศน์กองทัพบก">
                   สถานีวิทยุโทรทัศน์กองทัพบก
                 </option>
-                <option value="สถานีวิทยุโทรทัศน์กองทัพบก">
+                <option value="บริษัท อสมท จำกัด มหาชน">
                   บริษัท อสมท จำกัด มหาชน
                 </option>
-                <option value="สถานีวิทยุโทรทัศน์กองทัพบก">
+                <option value="สถานีโทรทัศน์ไทยพีบีเอส">
                   สถานีโทรทัศน์ไทยพีบีเอส
                 </option>
-                <option value="สถานีวิทยุโทรทัศน์กองทัพบก">
+                <option value="สถานีโทรทัศน์ ALTV">
                 สถานีโทรทัศน์ ALTV
                 </option>
                 <option value="กรมประชาสัมพันธ์">กรมประชาสัมพันธ์</option>
