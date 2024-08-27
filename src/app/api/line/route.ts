@@ -10,7 +10,7 @@ export async function POST(req: Request) {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer GEGDPSqJ8Kzxb9XOeTVjCXXL7hqkpNaY1KREhr2zVkJ`,
+        Authorization: `Bearer aS8l0UgHXBLJnRHn665xGvEaQdOGIXhbIgl9BIcppXB`,
       },
       body: `message=${message}`,
     });
