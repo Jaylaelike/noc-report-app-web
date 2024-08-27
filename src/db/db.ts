@@ -1,3 +1,4 @@
+
 import { drizzle, MySql2Database } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 
@@ -7,36 +8,41 @@ export const dbConfig = {
   password: process.env.DB_PASSWORD!,
   database: process.env.DB_NAME!,
   port: Number(process.env.DB_PORT) as number,
-
- 
-
-  // timezone: "utc",
 };
 
-// Singleton function to ensure only one db instance is created
+
+
+const pool = mysql.createPool({
+ ...dbConfig,
+  waitForConnections: true,
+  connectionLimit: 100, // Adjust this value based on your needs
+  queueLimit: 0,
+  idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0, // initial delay for TCP Keep-Alive packets, in milliseconds, the default value 30000
+});
+
+//   // connectionLimit: 100,
+// });
 
 // let pool: mysql.Pool | null = null;
 
-// // Singleton function to ensure only one db instance is created
 // const getPool = (): mysql.Pool => {
 //   if (!pool) {
-//     pool = mysql.createPool(dbConfig);
+//     pool = mysql.createPool({
+//       ...dbConfig,
+//       waitForConnections: true,
+//       connectionLimit: 10, // Adjust this value based on your needs
+//       queueLimit: 0,
+//       idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
+//       enableKeepAlive: true,
+//       keepAliveInitialDelay: 0, // initial delay for TCP Keep-Alive packets, in milliseconds, the default value 30000
+//     });
 //   }
 //   return pool;
 // };
 
-const pool = mysql.createPool({
-  ...dbConfig,
-  waitForConnections: true,
-  connectionLimit: 100,
-  idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0, // initial delay for TCP Keep-Alive packets, in milliseconds, the default value 30000
-  queueLimit: 0,
- 
-
-  // connectionLimit: 100,
-});
+// export default getPool;
 
 export const getDb = async (): Promise<MySql2Database<
   Record<string, never>

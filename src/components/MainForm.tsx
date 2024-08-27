@@ -220,7 +220,7 @@ export default function MainForm() {
         "YYYY-MM-DD HH:mm:ss",
       ));
 
-    if (!sendLineNotify) {
+  
       try {
         const message = `
         Hi, ${user.username} ส่งข้อมูล Downtime มาให้ตรวจสอบ
@@ -239,7 +239,7 @@ export default function MainForm() {
       } catch (error) {
         console.error(error);
       }
-    }
+    
 
     if (sendEmail) {
       try {

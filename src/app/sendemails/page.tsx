@@ -214,7 +214,7 @@ function page() {
       // router.refresh();
       //reload page
 
-      router.push("/emails");
+      router.push("/sendemails");
       location.reload();
       close();
     } catch (error) {

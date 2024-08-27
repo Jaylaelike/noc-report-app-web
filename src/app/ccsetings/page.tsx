@@ -22,12 +22,12 @@ import {
   TableCell,
 } from "~/components/ui/table";
 
-
 import CCEmailCreate from "~/components/CcEmailsCreate";
 
 interface Users {
-  id_reporter: number;
-  username_reporter: string;
+  id_cc: number;
+  customers_cc: string;
+  emails_cc: string;
 }
 
 interface UserSession {
@@ -35,7 +35,6 @@ interface UserSession {
   username: string;
   role: string;
 }
-
 
 function CalendarClockIcon(props) {
   return (
@@ -206,13 +205,12 @@ function page() {
     (user) => user.id === userId,
   );
 
-
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const router = useRouter();
 
   const handleDeleteRecord = async (itemId: number) => {
     try {
-      await axios.delete(`api/sendcc/${itemId}`);
+      await axios.delete(`/api/sendcc/${itemId}`);
 
       // router.refresh();
       //reload page
@@ -227,89 +225,88 @@ function page() {
 
   return (
     <>
-   
-     {roleUser?.role === "Admin" && (
-    <main className="z-10 flex min-h-screen flex-col items-center justify-center">
-      <div className="space-y-8 p-4">
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardContent className="flex items-center justify-between">
-              <div>
-                <CardTitle>Emails setting All</CardTitle>
+      {roleUser?.role === "Admin" && (
+        <main className="z-10 flex min-h-screen flex-col items-center justify-center">
+          <div className="space-y-8 p-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card>
+                <CardContent className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Emails setting All</CardTitle>
 
-                <div className="text-4xl font-bold">
-                  {usersData?.data?.data.length}
+                    <div className="text-4xl font-bold">
+                      {usersData?.data?.data.length}
+                    </div>
+                  </div>
+                  <GroupIcon className="h-12 w-12 text-primary" />
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">All Leave Requests</h2>
+                <div className="relative">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => setShowCreateUser(true)}
+                  >
+                    เพิ่ม Email +{" "}
+                  </button>
                 </div>
               </div>
-              <GroupIcon className="h-12 w-12 text-primary" />
-            </CardContent>
-          </Card>
-        </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">All Leave Requests</h2>
-            <div className="relative">
-              <button
-                className="btn btn-primary"
-                onClick={() => setShowCreateUser(true)}
-              >
-                เพิ่ม Email +{" "}
-              </button>
+              {showCreateUser && <CCEmailCreate />}
+
+              {isQueriesLoaded ? (
+                <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b pt-10">
+                  <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+                    <span className="loading loading-lg"></span>
+                  </div>
+                </div>
+              ) : (
+                <Card>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Username</TableHead>
+
+                        <TableHead>email</TableHead>
+                        <TableHead>Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {usersData?.data?.data.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>{user.customers_cc}</TableCell>
+
+                          <TableCell>{user.emails_cc}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <button className="btn btn-primary btn-sm">
+                                <ClipboardPenIcon className="h-4 w-4" />
+                              </button>
+
+                              <button
+                                className="btn btn-primary btn-sm"
+                                onClick={() => handleDeleteRecord(user.id_cc)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
+              )}
             </div>
           </div>
+        </main>
+      )}
 
-          {showCreateUser && <CCEmailCreate />}
-
-          {isQueriesLoaded ? (
-            <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b pt-10">
-              <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-                <span className="loading loading-lg"></span>
-              </div>
-            </div>
-          ) : (
-            <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Username</TableHead>
-
-                    <TableHead>email</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {usersData?.data?.data.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>{user.customers_cc}</TableCell>
-
-                      <TableCell>{user.emails_cc}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <button className="btn btn-primary btn-sm">
-                            <ClipboardPenIcon className="h-4 w-4" />
-                          </button>
-
-                          <button
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleDeleteRecord(user.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
-          )}
-        </div>
-      </div>
-    </main>
-        )}
-
-{isQueriesLoaded ? (
+      {isQueriesLoaded ? (
         <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b pt-10">
           <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
             <span className="loading loading-lg"></span>
@@ -331,8 +328,7 @@ function page() {
           )}
         </>
       )}
-
-</>
+    </>
   );
 }
 

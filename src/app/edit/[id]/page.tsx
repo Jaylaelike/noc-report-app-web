@@ -44,8 +44,7 @@ import dayjs from "dayjs";
 
 import { createRef } from "react";
 import emailjs from "@emailjs/browser";
-import { start } from "repl";
-import { init } from "next/dist/compiled/webpack/webpack";
+
 
 // eslint-disable-next-line react-hooks/rules-of-hooks
 const form = createRef();
@@ -322,7 +321,7 @@ export default function MainForm({ params }: EditPostPageProps) {
         "YYYY-MM-DD HH:mm:ss",
       ));
 
-    if (!sendLineNotify) {
+
       try {
         const message = `
         ${user.username} ส่งข้อมูล Downtime แก้ไขแล้ว
@@ -343,7 +342,7 @@ export default function MainForm({ params }: EditPostPageProps) {
       } catch (error) {
         console.error(error);
       }
-    }
+    
 
     if (sendEmail) {
       try {
