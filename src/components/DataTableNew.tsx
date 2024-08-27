@@ -85,23 +85,6 @@ const formattedDate = new Date().toISOString().slice(0, 10);
 export default function DataTableNew(props: PropsType) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  // const filteredData = props.all?.data?.data.filter((item: Data) => {
-  //   return (
-  //     item.Site.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-  //     item.FacilityProvider.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-  //     item.EngineeringCenter.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-  //     // item.PostingDate.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-  //     // item.DowntimeStart.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-  //     // item.DowntimeEnd.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-  //     item.DowntimeTotal.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-  //     item.Detail.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-  //     item.JobTickets.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-  //     item.Reporter.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-  //     item.Approver.toLowerCase().includes(searchTerm?.toLowerCase())
-  //   );
-  // });
-
   const filteredData = props.all?.data?.data.filter((item: Data) => {
     const term = searchTerm?.toLowerCase() || "";
     return (
@@ -222,7 +205,6 @@ export default function DataTableNew(props: PropsType) {
       <div className="overflow-x-auto">
         <div className="">
           <div className="absolute top-20 w-80 p-4 pb-32">
-          
             <Datepicker
               popoverDirection="down"
               value={values}
@@ -232,7 +214,7 @@ export default function DataTableNew(props: PropsType) {
           </div>
 
           <div className="grid grid-cols-1 justify-end p-4">
-          {startDates !== "" && endDates !== "" && (
+            {startDates !== "" && endDates !== "" && (
               <div className="grid grid-cols-1 gap-4">
                 <Card>
                   <CardContent className="flex items-center justify-end">
@@ -249,7 +231,7 @@ export default function DataTableNew(props: PropsType) {
               </div>
             )}
             {startDates === "" && endDates === "" && (
-              <div className="grid grid-cols-1 gap-4 p-2 ">
+              <div className="grid grid-cols-1 gap-4 p-2">
                 <Card>
                   <CardContent className="flex items-center justify-end">
                     <div>
@@ -305,102 +287,132 @@ export default function DataTableNew(props: PropsType) {
               </tr>
             </thead>
             <tbody>
-              {!searchTerm &&
-                startDates === "" &&
-                endDates === "" &&
-                allData?.map((item: Data) => (
-                  <tr
-                    key={item.id}
-                    className="border-b border-gray-200 text-xs hover:bg-gray-100"
-                  >
-                    <td className="px-4 py-3">
-                      <button className="btn btn-error">
-                        <AlertDialogDelButton alertId={item.id} />
-                      </button>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <button className="btn btn-warning">
-                        <AlertDialogEditButton alertId={item.id} />
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">{item.Site}</td>
-                    <td className="px-4 py-3">{item.FacilityProvider}</td>
-                    <td className="px-4 py-3">{item.EngineeringCenter}</td>
-                    <td className="px-4 py-3">{dayjs(item.PostingDate).subtract(7, 'hour').format("DD-MM-YYYY")}</td>
-                    <td className="px-4 py-3">{dayjs(item.DowntimeStart).subtract(7, 'hour').format("DD-MM-YYYY HH:mm:ss")}</td>
-                    <td className="px-4 py-3">{dayjs(item.DowntimeEnd).subtract(7, 'hour').format("DD-MM-YYYY HH:mm:ss")}</td>
-                    <td className="px-4 py-3">{item.DowntimeTotal}</td>
-                    <td className="px-4 py-3">{item.Detail}</td>
-                    <td className="px-4 py-3">{item.JobTickets}</td>
-                    <td className="px-4 py-3">{item.Reporter}</td>
-                    <td className="px-4 py-3">{item.Approver}</td>
-                  </tr>
-                ))}
-
-              {searchTerm !== null &&
-                startDates === "" &&
-                endDates === "" &&
-                filteredData?.map((item: Data) => (
-                  <tr
-                    key={item.id}
-                    className="border-b border-gray-200 text-xs hover:bg-gray-100"
-                  >
-                    <td className="px-4 py-3">
-                      <button className="btn btn-error">
-                        <AlertDialogDelButton alertId={item.id} />
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <button className="btn btn-warning">
-                        <AlertDialogEditButton alertId={item.id} />
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">{item.Site}</td>
-                    <td className="px-4 py-3">{item.FacilityProvider}</td>
-                    <td className="px-4 py-3">{item.EngineeringCenter}</td>
-                    <td className="px-4 py-3">{dayjs(item.PostingDate).subtract(7, 'hour').format("DD-MM-YYYY")}</td>
-                    <td className="px-4 py-3">{dayjs(item.DowntimeStart).subtract(7, 'hour').format("DD-MM-YYYY HH:mm:ss")}</td>
-                    <td className="px-4 py-3">{dayjs(item.DowntimeEnd).subtract(7, 'hour').format("DD-MM-YYYY HH:mm:ss")}</td>
-                    <td className="px-4 py-3">{item.DowntimeTotal}</td>
-                    <td className="px-4 py-3">{item.Detail}</td>
-                    <td className="px-4 py-3">{item.JobTickets}</td>
-                    <td className="px-4 py-3">{item.Reporter}</td>
-                    <td className="px-4 py-3">{item.Approver}</td>
-                  </tr>
-                ))}
-
-              {startDates !== "" &&
-                endDates !== "" &&
-                newDownTimeDateFiltering?.map((item: Data) => (
-                  <tr
-                    key={item.id}
-                    className="border-b border-gray-200 text-xs hover:bg-gray-100"
-                  >
-                    <td className="px-4 py-3">
-                      <button className="btn btn-error">
-                        <AlertDialogDelButton alertId={item.id} />
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <button className="btn btn-warning">
-                        <AlertDialogEditButton alertId={item.id} />
-                      </button>
-                    </td>
-
-                    <td className="px-4 py-3">{item.Site}</td>
-                    <td className="px-4 py-3">{item.FacilityProvider}</td>
-                    <td className="px-4 py-3">{item.EngineeringCenter}</td>
-                    <td className="px-4 py-3">{dayjs(item.PostingDate).subtract(7, 'hour').format("DD-MM-YYYY")}</td>
-                    <td className="px-4 py-3">{dayjs(item.DowntimeStart).subtract(7, 'hour').format("DD-MM-YYYY HH:mm:ss")}</td>
-                    <td className="px-4 py-3">{dayjs(item.DowntimeEnd).subtract(7, 'hour').format("DD-MM-YYYY HH:mm:ss")}</td>
-                    <td className="px-4 py-3">{item.DowntimeTotal}</td>
-                    <td className="px-4 py-3">{item.Detail}</td>
-                    <td className="px-4 py-3">{item.JobTickets}</td>
-                    <td className="px-4 py-3">{item.Reporter}</td>
-                    <td className="px-4 py-3">{item.Approver}</td>
-                  </tr>
-                ))}
+              {!searchTerm && startDates === "" && endDates === ""
+                ? allData?.map((item: Data) => (
+                    <tr
+                      key={item.id}
+                      className="border-b border-gray-200 text-xs hover:bg-gray-100"
+                    >
+                      <td className="px-4 py-3">
+                        <button className="btn btn-error">
+                          <AlertDialogDelButton alertId={item.id} />
+                        </button>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button className="btn btn-warning">
+                          <AlertDialogEditButton alertId={item.id} />
+                        </button>
+                      </td>
+                      <td className="px-4 py-3">{item.Site}</td>
+                      <td className="px-4 py-3">{item.FacilityProvider}</td>
+                      <td className="px-4 py-3">{item.EngineeringCenter}</td>
+                      <td className="px-4 py-3">
+                        {dayjs(item.PostingDate)
+                          .subtract(7, "hour")
+                          .format("DD-MM-YYYY")}
+                      </td>
+                      <td className="px-4 py-3">
+                        {dayjs(item.DowntimeStart)
+                          .subtract(7, "hour")
+                          .format("DD-MM-YYYY HH:mm:ss")}
+                      </td>
+                      <td className="px-4 py-3">
+                        {dayjs(item.DowntimeEnd)
+                          .subtract(7, "hour")
+                          .format("DD-MM-YYYY HH:mm:ss")}
+                      </td>
+                      <td className="px-4 py-3">{item.DowntimeTotal}</td>
+                      <td className="px-4 py-3">{item.Detail}</td>
+                      <td className="px-4 py-3">{item.JobTickets}</td>
+                      <td className="px-4 py-3">{item.Reporter}</td>
+                      <td className="px-4 py-3">{item.Approver}</td>
+                    </tr>
+                  ))
+                : searchTerm !== null && startDates === "" && endDates === ""
+                  ? filteredData?.map((item: Data) => (
+                      <tr
+                        key={item.id}
+                        className="border-b border-gray-200 text-xs hover:bg-gray-100"
+                      >
+                        <td className="px-4 py-3">
+                          <button className="btn btn-error">
+                            <AlertDialogDelButton alertId={item.id} />
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          <button className="btn btn-warning">
+                            <AlertDialogEditButton alertId={item.id} />
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">{item.Site}</td>
+                        <td className="px-4 py-3">{item.FacilityProvider}</td>
+                        <td className="px-4 py-3">{item.EngineeringCenter}</td>
+                        <td className="px-4 py-3">
+                          {dayjs(item.PostingDate)
+                            .subtract(7, "hour")
+                            .format("DD-MM-YYYY")}
+                        </td>
+                        <td className="px-4 py-3">
+                          {dayjs(item.DowntimeStart)
+                            .subtract(7, "hour")
+                            .format("DD-MM-YYYY HH:mm:ss")}
+                        </td>
+                        <td className="px-4 py-3">
+                          {dayjs(item.DowntimeEnd)
+                            .subtract(7, "hour")
+                            .format("DD-MM-YYYY HH:mm:ss")}
+                        </td>
+                        <td className="px-4 py-3">{item.DowntimeTotal}</td>
+                        <td className="px-4 py-3">{item.Detail}</td>
+                        <td className="px-4 py-3">{item.JobTickets}</td>
+                        <td className="px-4 py-3">{item.Reporter}</td>
+                        <td className="px-4 py-3">{item.Approver}</td>
+                      </tr>
+                    ))
+                  : startDates !== "" && endDates !== ""
+                    ? newDownTimeDateFiltering?.map((item: Data) => (
+                        <tr
+                          key={item.id}
+                          className="border-b border-gray-200 text-xs hover:bg-gray-100"
+                        >
+                          <td className="px-4 py-3">
+                            <button className="btn btn-error">
+                              <AlertDialogDelButton alertId={item.id} />
+                            </button>
+                          </td>
+                          <td className="px-4 py-3">
+                            <button className="btn btn-warning">
+                              <AlertDialogEditButton alertId={item.id} />
+                            </button>
+                          </td>
+                          <td className="px-4 py-3">{item.Site}</td>
+                          <td className="px-4 py-3">{item.FacilityProvider}</td>
+                          <td className="px-4 py-3">
+                            {item.EngineeringCenter}
+                          </td>
+                          <td className="px-4 py-3">
+                            {dayjs(item.PostingDate)
+                              .subtract(7, "hour")
+                              .format("DD-MM-YYYY")}
+                          </td>
+                          <td className="px-4 py-3">
+                            {dayjs(item.DowntimeStart)
+                              .subtract(7, "hour")
+                              .format("DD-MM-YYYY HH:mm:ss")}
+                          </td>
+                          <td className="px-4 py-3">
+                            {dayjs(item.DowntimeEnd)
+                              .subtract(7, "hour")
+                              .format("DD-MM-YYYY HH:mm:ss")}
+                          </td>
+                          <td className="px-4 py-3">{item.DowntimeTotal}</td>
+                          <td className="px-4 py-3">{item.Detail}</td>
+                          <td className="px-4 py-3">{item.JobTickets}</td>
+                          <td className="px-4 py-3">{item.Reporter}</td>
+                          <td className="px-4 py-3">{item.Approver}</td>
+                        </tr>
+                      ))
+                    : null}
             </tbody>
           </table>
         </div>
