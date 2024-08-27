@@ -348,9 +348,9 @@ export default function MainForm({ params }: EditPostPageProps) {
       try {
         // Sending an email using EmailJS
         await emailjs
-          .sendForm("service_6r33dl4", "template_arhxuji", form.current, {
-            publicKey: "k2oIA432AyQSUlsJM",
-          })
+        .sendForm("service_w6m3dia", "template_zbkbfxa", form.current, {
+          publicKey: "IiX7l3ymlj-N9H8kd",
+        })
           .then(
             () => {
               console.log("SUCCESS!");
