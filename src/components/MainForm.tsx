@@ -1,8 +1,9 @@
+"use client";
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-"use client";
+
 import {
   Card,
   CardHeader,
@@ -43,7 +44,12 @@ import { DatetimeFsp } from "drizzle-orm/mysql-core/columns/datetime";
 import dayjs from "dayjs";
 
 import { createRef } from "react";
-import emailjs from "@emailjs/browser";
+// import emailjs from "@emailjs/browser";
+
+import { render } from "@react-email/components";
+import nodemailer from "nodemailer";
+
+import { EmailTemplates } from "./EmailTemplete";
 
 // eslint-disable-next-line react-hooks/rules-of-hooks
 const form = createRef();
@@ -82,7 +88,6 @@ interface SendCEmail {
   enterprise_cc: string;
   emails_cc: string;
   telphone_cc: string;
-
 }
 
 const ITEM_HEIGHT = 48;
@@ -118,7 +123,6 @@ export default function MainForm() {
 
   console.log(`emailsData`, personName);
   console.log(`cCemailsData`, personNameCc);
-  
 
   const handleChange = (event: SelectChangeEvent<typeof personName>) => {
     const {
@@ -220,26 +224,24 @@ export default function MainForm() {
         "YYYY-MM-DD HH:mm:ss",
       ));
 
-  
-      try {
-        const message = `
-        Hi, ${user.username} ส่งข้อมูล Downtime มาให้ตรวจสอบ
-        แจ้งแหตุขัดข้องในการให้บริการฯ
-        วันที่เกิดเหตุ : ${dayjs(data.DowntimeStart).format("DD-MM-YYYY")}
-        Station: ${stationName}
-        FacilityProvider: ${staTionData?.data?.data[0].Facility}
-        EngineeringCenter: ${staTionData?.data?.data[0].Engineering_center}
-        DowntimeStart: ${dayjs(data.DowntimeStart).format("DD-MM-YYYY HH:mm:ss")}
-        DowntimeEnd: ${dayjs(data.DowntimeEnd).format("DD-MM-YYYY HH:mm:ss")}
-        DowntimeTotal: ${duration}
-        Detail: ${detailMessage}
-        JobTickets: ${form.current?.JobTickets.value}
-      `;
-        await axios.post("/api/line", { message });
-      } catch (error) {
-        console.error(error);
-      }
-    
+    try {
+      const message = `
+      Hi, ${user.username} ส่งข้อมูล Downtime มาให้ตรวจสอบ
+      แจ้งแหตุขัดข้องในการให้บริการฯ
+      วันที่เกิดเหตุ : ${dayjs(data.DowntimeStart).format("DD-MM-YYYY")}
+      Station: ${stationName}
+      FacilityProvider: ${staTionData?.data?.data[0].Facility}
+      EngineeringCenter: ${staTionData?.data?.data[0].Engineering_center}
+      DowntimeStart: ${dayjs(data.DowntimeStart).format("DD-MM-YYYY HH:mm:ss")}
+      DowntimeEnd: ${dayjs(data.DowntimeEnd).format("DD-MM-YYYY HH:mm:ss")}
+      DowntimeTotal: ${duration}
+      Detail: ${detailMessage}
+      JobTickets: ${form.current?.JobTickets.value}
+    `;
+      await axios.post("/api/line", { message });
+    } catch (error) {
+      console.error(error);
+    }
 
     if (sendEmail) {
       try {
@@ -262,6 +264,56 @@ export default function MainForm() {
         alert("Oops! Something went wrong. Please try again later.");
       }
     }
+
+    // if (sendEmail) {
+    //   try {
+    //     const transporter = nodemailer.createTransport({
+    //       host: "172.16.201.56",
+    //       port: 587,
+    //       secure: true,
+    //       auth: {
+    //         user: "nocadmin@thaipbs.or.th",
+    //         pass: "noctpbs",
+    //       },
+    //     });
+
+    //     const emailHtml = render(
+    //       <EmailTemplates
+    //         posting_date={dayjs(new Date()).format("DD-MM-YYYY HH:mm:ss")}
+    //         station_name={stationName}
+    //         Facility_name={staTionData?.data?.data[0].Facility}
+    //         detail_data={detailMessage}
+    //         start_time={dayjs(data.DowntimeStart).format("DD-MM-YYYY HH:mm:ss")}
+    //         end_time={dayjs(data.DowntimeEnd).format("DD-MM-YYYY HH:mm:ss")}
+    //         sum_time={duration}
+    //       />,
+    //       {},
+    //     );
+
+    //     const options = {
+    //       from: "NOCadmin@thaipbs.or.th",
+    //       to: "sittichaim@thaipbs.or.th",
+    //       subject: "NOC Downtime Report",
+    //       html: emailHtml,
+    //     };
+
+    //     transporter.sendMail(
+    //       { ...options, html: await options.html },
+    //       (error, info) => {
+    //         if (error) {
+    //           console.log(error);
+    //         } else {
+    //           console.log(`Email sent: ${info.response}`);
+    //         }
+    //       },
+    //     );
+    //   } catch (error) {
+    //     console.error(error);
+        
+    //   }
+
+    //   alert("Please check your email to view the sent message.");
+    // }
 
     setIsSubmitting(true);
 
@@ -332,7 +384,6 @@ export default function MainForm() {
     setEmail(event.target.checked);
   };
 
-
   return (
     <form
       ref={form}
@@ -350,7 +401,11 @@ export default function MainForm() {
               <div className="space-y-2">
                 <Label htmlFor="first-name">Station</Label>
 
-                <input type="hidden" name="subject" value={"NOCadmin@thaipbs.or.th"} />
+                <input
+                  type="hidden"
+                  name="subject"
+                  value={"NOCadmin@thaipbs.or.th"}
+                />
                 <input type="hidden" name="user_name" value={user.username} />
                 <input
                   type="hidden"

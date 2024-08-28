@@ -18,6 +18,35 @@ const config = {
         fullUrl: true,
       },
     },
+    webpack: (config, { isServer }) => {
+    //   if (!isServer) config.resolve.fallback.fs = false;
+    //   return config;
+    // },
+    if (!isServer) {
+      config.resolve = {
+        ...config.resolve,
+        fallback: {
+          // fixes proxy-agent dependencies
+          net: false,
+          dns: false,
+          tls: false,
+          assert: false,
+          // fixes next-i18next dependencies
+          path: false,
+          fs: false,
+          // fixes mapbox dependencies
+          events: false,
+          child_process: false,
+          // fixes sentry dependencies
+      
+          
+        }
+      };
+    }
+    config.module.exprContextCritical = false; // Workaround to suppress next-i18next warning, see https://github.com/isaachinman/next-i18next/issues/1545
+
+    return config;
+  },
     crossOrigin: "anonymous",
     output: "standalone",
     async headers() {
@@ -48,7 +77,9 @@ const config = {
           ],
         },
       ];
-    },
+    }
+  
+
   };
   
 
