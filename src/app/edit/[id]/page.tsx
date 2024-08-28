@@ -43,7 +43,7 @@ import { DatetimeFsp } from "drizzle-orm/mysql-core/columns/datetime";
 import dayjs from "dayjs";
 
 import { createRef } from "react";
-import emailjs from "@emailjs/browser";
+// import emailjs from "@emailjs/browser";
 
 
 // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -344,26 +344,46 @@ export default function MainForm({ params }: EditPostPageProps) {
       }
     
 
+    // if (sendEmail) {
+    //   try {
+    //     // Sending an email using EmailJS
+    //     await emailjs
+    //     .sendForm("service_w6m3dia", "template_zbkbfxa", form.current, {
+    //       publicKey: "IiX7l3ymlj-N9H8kd",
+    //     })
+    //       .then(
+    //         () => {
+    //           console.log("SUCCESS!");
+    //         },
+    //         (error) => {
+    //           console.log("FAILED...", error.text);
+    //         },
+    //       );
+    //     alert("Please check your email to view the sent message.");
+    //   } catch (error) {
+    //     console.log(error);
+    //     alert("Oops! Something went wrong. Please try again later.");
+    //   }
+    // }
+
     if (sendEmail) {
       try {
-        // Sending an email using EmailJS
-        await emailjs
-        .sendForm("service_w6m3dia", "template_zbkbfxa", form.current, {
-          publicKey: "IiX7l3ymlj-N9H8kd",
-        })
-          .then(
-            () => {
-              console.log("SUCCESS!");
-            },
-            (error) => {
-              console.log("FAILED...", error.text);
-            },
-          );
-        alert("Please check your email to view the sent message.");
+        await axios.post("api/sendmails", {
+          posting_date: dayjs(new Date()).format("DD-MM-YYYY HH:mm:ss"),
+          station_name: stationName,
+          Facility_name: staTionData?.data?.data[0].Facility,
+          detail_data: detailMessage,
+          start_time: dayjs(new Date(startTime)).format("DD-MM-YYYY HH:mm:ss"),
+          end_time: dayjs(new Date(endTime)).format("DD-MM-YYYY HH:mm:ss"),
+          sum_time: duration,
+          user_to: personName.map((email) => email),
+          cc: personNameCc.map((email) => email),
+        });
       } catch (error) {
-        console.log(error);
-        alert("Oops! Something went wrong. Please try again later.");
+        console.error(error);
       }
+
+      alert("Please check your email to view the sent message.");
     }
 
     setIsSubmitting(true);

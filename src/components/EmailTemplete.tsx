@@ -1,7 +1,7 @@
 
 import {
   Body,
-  Button,
+
   Container,
   Column,
   Head,
@@ -24,9 +24,6 @@ interface EmailTemplates {
   sum_time: string;
 }
 
-const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "";
 
 export const EmailTemplates = ({
   posting_date,
@@ -37,10 +34,7 @@ export const EmailTemplates = ({
   end_time,
   sum_time,
 }: EmailTemplates) => {
-  //   const formattedDate = new Intl.DateTimeFormat("th", {
-  //     dateStyle: "long",
-  //     timeStyle: "short",
-  //   }).format(posting_date);
+
 
   return (
     <Html>
@@ -138,13 +132,6 @@ export const EmailTemplates = ({
   );
 };
 
-// EmailTemplates.PreviewProps = {
-//   userFirstName: "Alan",
-//   loginDate: new Date("September 7, 2022, 10:58 am"),
-//   loginDevice: "Chrome on Mac OS X",
-//   loginLocation: "Upland, California, United States",
-//   loginIp: "47.149.53.167",
-// } as EmailTemplates;
 
 export default EmailTemplates;
 
@@ -162,21 +149,7 @@ const logo = {
   padding: "30px 20px",
 };
 
-// const containerButton = {
-//   display: "flex",
-//   justifyContent: "center",
-//   width: "100%",
-// };
 
-// const button = {
-//   backgroundColor: "#e00707",
-//   borderRadius: 3,
-//   color: "#FFF",
-//   fontWeight: "bold",
-//   border: "1px solid rgb(0,0,0, 0.1)",
-//   cursor: "pointer",
-//   padding: "12px 30px",
-// };
 
 const content = {
   border: "1px solid rgb(0,0,0, 0.1)",
@@ -184,14 +157,10 @@ const content = {
   overflow: "hidden",
 };
 
-// const image = {
-//   maxWidth: "100%",
-// };
+
 
 const boxInfos = {
   padding: "20px",
 };
 
-// const containerImageFooter = {
-//   padding: "45px 0 0 0",
-// };
+

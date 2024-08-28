@@ -46,11 +46,6 @@ import dayjs from "dayjs";
 import { createRef } from "react";
 // import emailjs from "@emailjs/browser";
 
-import { render } from "@react-email/components";
-import nodemailer from "nodemailer";
-
-import { EmailTemplates } from "./EmailTemplete";
-
 // eslint-disable-next-line react-hooks/rules-of-hooks
 const form = createRef();
 
@@ -243,77 +238,47 @@ export default function MainForm() {
       console.error(error);
     }
 
-    if (sendEmail) {
-      try {
-        // Sending an email using EmailJS
-        await emailjs
-          .sendForm("service_w6m3dia", "template_zbkbfxa", form.current, {
-            publicKey: "IiX7l3ymlj-N9H8kd",
-          })
-          .then(
-            () => {
-              console.log("SUCCESS!");
-            },
-            (error) => {
-              console.log("FAILED...", error.text);
-            },
-          );
-        alert("Please check your email to view the sent message.");
-      } catch (error) {
-        console.log(error);
-        alert("Oops! Something went wrong. Please try again later.");
-      }
-    }
-
     // if (sendEmail) {
     //   try {
-    //     const transporter = nodemailer.createTransport({
-    //       host: "172.16.201.56",
-    //       port: 587,
-    //       secure: true,
-    //       auth: {
-    //         user: "nocadmin@thaipbs.or.th",
-    //         pass: "noctpbs",
-    //       },
-    //     });
-
-    //     const emailHtml = render(
-    //       <EmailTemplates
-    //         posting_date={dayjs(new Date()).format("DD-MM-YYYY HH:mm:ss")}
-    //         station_name={stationName}
-    //         Facility_name={staTionData?.data?.data[0].Facility}
-    //         detail_data={detailMessage}
-    //         start_time={dayjs(data.DowntimeStart).format("DD-MM-YYYY HH:mm:ss")}
-    //         end_time={dayjs(data.DowntimeEnd).format("DD-MM-YYYY HH:mm:ss")}
-    //         sum_time={duration}
-    //       />,
-    //       {},
-    //     );
-
-    //     const options = {
-    //       from: "NOCadmin@thaipbs.or.th",
-    //       to: "sittichaim@thaipbs.or.th",
-    //       subject: "NOC Downtime Report",
-    //       html: emailHtml,
-    //     };
-
-    //     transporter.sendMail(
-    //       { ...options, html: await options.html },
-    //       (error, info) => {
-    //         if (error) {
-    //           console.log(error);
-    //         } else {
-    //           console.log(`Email sent: ${info.response}`);
-    //         }
-    //       },
-    //     );
+    //     // Sending an email using EmailJS
+    //     await emailjs
+    //       .sendForm("service_w6m3dia", "template_zbkbfxa", form.current, {
+    //         publicKey: "IiX7l3ymlj-N9H8kd",
+    //       })
+    //       .then(
+    //         () => {
+    //           console.log("SUCCESS!");
+    //         },
+    //         (error) => {
+    //           console.log("FAILED...", error.text);
+    //         },
+    //       );
+    //     alert("Please check your email to view the sent message.");
     //   } catch (error) {
-    //     console.error(error);
-        
+    //     console.log(error);
+    //     alert("Oops! Something went wrong. Please try again later.");
     //   }
-
-    //   alert("Please check your email to view the sent message.");
     // }
+
+    if (sendEmail) {
+      try {
+        await axios.post("api/sendmails", {
+          posting_date: dayjs(new Date()).format("DD-MM-YYYY HH:mm:ss"),
+          station_name: stationName,
+          Facility_name: staTionData?.data?.data[0].Facility,
+          detail_data: detailMessage,
+          start_time: dayjs(new Date(startTime)).format("DD-MM-YYYY HH:mm:ss"),
+          end_time: dayjs(new Date(endTime)).format("DD-MM-YYYY HH:mm:ss"),
+          sum_time: duration,
+          user_to: personName.map((email) => email),
+          cc: personNameCc.map((email) => email),
+        });
+      } catch (error) {
+        console.error(error);
+      }
+
+      alert("Please check your email to view the sent message.");
+    }
 
     setIsSubmitting(true);
 
