@@ -44,6 +44,7 @@ import { DatetimeFsp } from "drizzle-orm/mysql-core/columns/datetime";
 import dayjs from "dayjs";
 
 import { createRef } from "react";
+import { FaLine } from "react-icons/fa";
 // import emailjs from "@emailjs/browser";
 
 
@@ -322,7 +323,7 @@ export default function MainForm({ params }: EditPostPageProps) {
         "YYYY-MM-DD HH:mm:ss",
       ));
 
-
+      if (sendLineNotify) {
       try {
         const message = `
         ${user.username} ส่งข้อมูล Downtime แก้ไขแล้ว
@@ -343,6 +344,7 @@ export default function MainForm({ params }: EditPostPageProps) {
       } catch (error) {
         console.error(error);
       }
+    }
     
 
     // if (sendEmail) {
@@ -996,7 +998,8 @@ export default function MainForm({ params }: EditPostPageProps) {
               <CardTitle>Customers Emails</CardTitle>
             </CardHeader>
 
-            <div className="min-w-screen space-y-4 p-3">
+            <div className="flex flex-shrink justify-items-start gap-4 space-x-4">
+            <div className="space-y-4 p-3">
               <label className="label cursor-pointer">
                 <span className="label-text">Send Email</span>
                 <Controller
@@ -1013,6 +1016,25 @@ export default function MainForm({ params }: EditPostPageProps) {
                   )}
                 />
               </label>
+
+              <label className="label cursor-pointer">
+                  <span className="label-text">ส่งไลน์แจ้งเตือน</span>
+                  <span><FaLine size={20} /></span>
+                  <Controller
+                    name="sendLine"
+                    control={control}
+                    render={({ field }) => (
+                      <input
+                        type="checkbox"
+                        {...field}
+                        className="checkbox-secondary checkbox"
+                        checked={field.value}
+                        onChange={handleCheckboxChange}
+                      />
+                    )}
+                  />
+                </label>
+            </div>
             </div>
 
             <CardContent>
@@ -1038,6 +1060,14 @@ export default function MainForm({ params }: EditPostPageProps) {
                     </MenuItem>
                   ))}
                 </Select>
+                {personName && (
+                  <p style={{ color: "red" }}>
+                    อีเมล์ลูกค้าที่เลือก :
+                    {personName.map((email) => (
+                      <span key={email}>{email}, </span>
+                    ))}
+                  </p>
+                )}
               </FormControl>
 
               <FormControl sx={{ m: 1, width: 300 }}>
@@ -1062,6 +1092,14 @@ export default function MainForm({ params }: EditPostPageProps) {
                     </MenuItem>
                   ))}
                 </Select>
+                {personNameCc && (
+                <p style={{ color: "red" }}>
+                  อีเมล์ CC ที่เลือก :
+                  {personNameCc.map((email) => (
+                    <span key={email}>{email}, </span>
+                  ))}
+                </p>
+              )}
               </FormControl>
             </CardContent>
 

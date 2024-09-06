@@ -43,6 +43,9 @@ import { DatetimeFsp } from "drizzle-orm/mysql-core/columns/datetime";
 
 import dayjs from "dayjs";
 
+import { FaLine } from "react-icons/fa";
+
+
 import { createRef } from "react";
 // import emailjs from "@emailjs/browser";
 
@@ -165,21 +168,21 @@ export default function MainForm() {
   //     const startDate = new Date(start);
   //     const endDate = new Date(end);
   //     const diff = endDate.getTime() - startDate.getTime();
-      
+
   //     const hours = Math.floor(diff / (1000 * 60 * 60));
   //     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
   //     const seconds = (diff % (1000 * 60)) / 1000;
-      
+
   //     const formattedHours = String(hours).padStart(2, '0');
   //     const formattedMinutes = String(minutes).padStart(2, '0');
   //     const formattedSeconds = seconds.toFixed(3).padStart(6, '0');
-      
+
   //     setDuration(`${formattedHours}:${formattedMinutes}:${formattedSeconds}`);
   //   } else {
   //     setDuration("");
   //   }
   // };
-  
+
   // React.useEffect(() => {
   //   calculateDuration(startTime, endTime);
   // }, [startTime, endTime]);
@@ -246,8 +249,9 @@ export default function MainForm() {
         "YYYY-MM-DD HH:mm:ss",
       ));
 
-    try {
-      const message = `
+    if (sendLineNotify) {
+      try {
+        const message = `
       Hi, ${user.username} ส่งข้อมูล Downtime มาให้ตรวจสอบ
       แจ้งแหตุขัดข้องในการให้บริการฯ
       วันที่เกิดเหตุ : ${dayjs(data.DowntimeStart).format("DD-MM-YYYY")}
@@ -260,12 +264,11 @@ export default function MainForm() {
       Detail: ${detailMessage}
       JobTickets: ${form.current?.JobTickets.value}
     `;
-      await axios.post("/api/line", { message });
-    } catch (error) {
-      console.error(error);
+        await axios.post("/api/line", { message });
+      } catch (error) {
+        console.error(error);
+      }
     }
-
-
 
     if (sendEmail) {
       try {
@@ -842,23 +845,43 @@ export default function MainForm() {
               <CardTitle>Customers Emails</CardTitle>
             </CardHeader>
 
-            <div className="min-w-screen space-y-4 p-3">
-              <label className="label cursor-pointer">
-                <span className="label-text">Send Email</span>
-                <Controller
-                  name="sendEmail"
-                  control={control}
-                  render={({ field }) => (
-                    <input
-                      type="checkbox"
-                      {...field}
-                      className="checkbox-secondary checkbox"
-                      checked={field.value}
-                      onChange={handleCheckboxChange}
-                    />
-                  )}
-                />
-              </label>
+            <div className="flex flex-shrink justify-items-start gap-4 space-x-4">
+              <div className="space-y-4 p-3">
+                <label className="label cursor-pointer">
+                  <span className="label-text">ส่งอีเมล์</span>
+                  <Controller
+                    name="sendEmail"
+                    control={control}
+                    render={({ field }) => (
+                      <input
+                        type="checkbox"
+                        {...field}
+                        className="checkbox-secondary checkbox"
+                        checked={field.value}
+                        onChange={handleCheckboxChange}
+                      />
+                    )}
+                  />
+                </label>
+
+                <label className="label cursor-pointer">
+                  <span className="label-text">ส่งไลน์แจ้งเตือน</span>
+                  <span><FaLine size={20} /></span>
+                  <Controller
+                    name="sendLine"
+                    control={control}
+                    render={({ field }) => (
+                      <input
+                        type="checkbox"
+                        {...field}
+                        className="checkbox-secondary checkbox"
+                        checked={field.value}
+                        onChange={handleCheckboxChange}
+                      />
+                    )}
+                  />
+                </label>
+              </div>
             </div>
 
             <CardContent>
@@ -884,6 +907,14 @@ export default function MainForm() {
                     </MenuItem>
                   ))}
                 </Select>
+                {personName && (
+                  <p style={{ color: "red" }}>
+                    อีเมล์ลูกค้าที่เลือก :
+                    {personName.map((email) => (
+                      <span key={email}>{email}, </span>
+                    ))}
+                  </p>
+                )}
               </FormControl>
 
               <FormControl sx={{ m: 1, width: 300 }}>
@@ -909,6 +940,15 @@ export default function MainForm() {
                   ))}
                 </Select>
               </FormControl>
+
+              {personNameCc && (
+                <p style={{ color: "red" }}>
+                  อีเมล์ CC ที่เลือก :
+                  {personNameCc.map((email) => (
+                    <span key={email}>{email}, </span>
+                  ))}
+                </p>
+              )}
             </CardContent>
 
             <input
