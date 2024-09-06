@@ -157,6 +157,33 @@ export default function MainForm() {
     calculateDuration(startTime, endTime);
   }, [startTime, endTime]);
 
+  console.log("startTime", startTime);
+  console.log("endTime", endTime);
+
+  // const calculateDuration = (start: string, end: string) => {
+  //   if (start && end) {
+  //     const startDate = new Date(start);
+  //     const endDate = new Date(end);
+  //     const diff = endDate.getTime() - startDate.getTime();
+      
+  //     const hours = Math.floor(diff / (1000 * 60 * 60));
+  //     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  //     const seconds = (diff % (1000 * 60)) / 1000;
+      
+  //     const formattedHours = String(hours).padStart(2, '0');
+  //     const formattedMinutes = String(minutes).padStart(2, '0');
+  //     const formattedSeconds = seconds.toFixed(3).padStart(6, '0');
+      
+  //     setDuration(`${formattedHours}:${formattedMinutes}:${formattedSeconds}`);
+  //   } else {
+  //     setDuration("");
+  //   }
+  // };
+  
+  // React.useEffect(() => {
+  //   calculateDuration(startTime, endTime);
+  // }, [startTime, endTime]);
+
   //create state for select station name
   const [stationName, setStationName] = React.useState<string>("กรุงเทพ");
   const [userReports, setUserReports] = React.useState<string>("กรุณาเลือก");
@@ -238,27 +265,7 @@ export default function MainForm() {
       console.error(error);
     }
 
-    // if (sendEmail) {
-    //   try {
-    //     // Sending an email using EmailJS
-    //     await emailjs
-    //       .sendForm("service_w6m3dia", "template_zbkbfxa", form.current, {
-    //         publicKey: "IiX7l3ymlj-N9H8kd",
-    //       })
-    //       .then(
-    //         () => {
-    //           console.log("SUCCESS!");
-    //         },
-    //         (error) => {
-    //           console.log("FAILED...", error.text);
-    //         },
-    //       );
-    //     alert("Please check your email to view the sent message.");
-    //   } catch (error) {
-    //     console.log(error);
-    //     alert("Oops! Something went wrong. Please try again later.");
-    //   }
-    // }
+
 
     if (sendEmail) {
       try {
@@ -536,7 +543,7 @@ export default function MainForm() {
                               onChange={(newValue) => {
                                 field.onChange(newValue);
                                 setStartTime(
-                                  dayjs(newValue).format("YYYY-MM-DDTHH:mm"),
+                                  dayjs(newValue).format("YYYY-MM-DDTHH:mm:ss"),
                                 );
                               }}
                             />
@@ -579,7 +586,7 @@ export default function MainForm() {
                               onChange={(newValue) => {
                                 field.onChange(newValue);
                                 setEndTime(
-                                  dayjs(newValue).format("YYYY-MM-DDTHH:mm"),
+                                  dayjs(newValue).format("YYYY-MM-DDTHH:mm:ss"),
                                 );
                               }}
                             />
